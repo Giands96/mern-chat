@@ -1,0 +1,20 @@
+# Node modules
+/node_modules/
+/frontend/node_modules/
+/backend/node_modules/
+
+
+# Compilados
+dist/
+build/
+
+# Configs y entornos
+.env
+.env.local
+
+# Logs
+*.log
+
+# IDEs
+.vscode/
+.DS_Store

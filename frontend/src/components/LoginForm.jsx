@@ -37,10 +37,10 @@ export const LoginForm = () => {
       {/* Header con logo */}
       <div className="text-center md:mb-8">
         <div className="md:w-20 md:h-20 w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
-          <span className="text-white md:text-2xl text-sm font-bold">MT</span>
+          <span className="text-white md:text-2xl  text-sm font-bold">MT</span>
         </div>
         <h1 className="md:text-4xl text-lg font-light text-gray-800">MyTalk App</h1>
-        <p className="text-gray-600 mt-2 md:text-2xl text-sm mb-2">Conéctate y comunícate</p>
+        <p className="text-gray-600 mt-2 md:text-xl lg:text-2xl text-sm mb-2">Conéctate y comunícate</p>
       </div>
 
       {/* Toggle buttons */}
