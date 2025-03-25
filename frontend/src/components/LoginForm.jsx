@@ -1,53 +1,167 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, User, Mail, Lock, Image } from "lucide-react";
+import axios from "axios";
+import { useHistory } from 'react-router-dom';
 
 export const LoginForm = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [user, setUser] = useState({
     name: "",
     email: "",
     password: "",
-    pic: "",
+    pic: "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
   });
 
-  const handleChangeForm = (e) => {
-    const { name, value, files } = e.target;
+  const history = useHistory();
 
-    if (name === "pic" && files.length > 0) {
-      setUser((prev) => ({
-        ...prev,
-        pic: URL.createObjectURL(files[0]),
-      }));
+  const handleChangeForm = (e) => {
+    const { name, value } = e.target;
+    setUser(prev => ({ ...prev, [name]: value }));
+    
+  };
+
+  const handleImageUpload = async (file) => {
+    if (!file) return null;
+  
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "mern-chat-app");
+  
+    try {
+      const response = await fetch("https://api.cloudinary.com/v1_1/dwbmxfezu/image/upload", {
+        method: 'POST',
+        body: formData
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Error al subir la imagen a Cloudinary: ${errorData.error.message}`);
+      }
+  
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error("Error subiendo imagen:", error);
+      setError("Error al subir la imagen");
+      return null;
+    }
+  };
+  
+  
+
+  const handleImage = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+  
+    // Validaciones
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setError('Solo se permiten imágenes JPEG, PNG o GIF');
+      return;
+    }
+  
+    if (file.size > 5 * 1024 * 1024) { // 5MB
+      setError('La imagen no debe exceder 5MB');
+      return;
+    }
+  
+    // Previsualizacion local
+    const previewUrl = URL.createObjectURL(file);
+    setUser(prev => ({ ...prev, pic: previewUrl }));
+  
+    // Subir a Cloudinary
+    try {
+      setLoading(true);
+      const uploadedImageUrl = await handleImageUpload(file);
+      if (uploadedImageUrl) {
+        setUser(prev => ({ ...prev, pic: uploadedImageUrl }));
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      setError("Error al subir la imagen. Intenta con otra imagen.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validateForm = () => {
+    if (isLogin) {
+      if (!user.email || !user.password) {
+        setError("Por favor completa todos los campos");
+        return false;
+      }
     } else {
-      setUser((prev) => ({
-        ...prev,
-        [name]: value,
-      }))
-      console.log(name,value);
+      if (!user.name || !user.email || !user.password || !user.pic) {
+        setError("Por favor completa todos los campos");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+
+    if (!validateForm()) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const config = {
+        headers: { 'Content-Type': 'application/json' }
+      };
+
+      let response;
+      if (isLogin) {
+        response = await axios.post("/api/user/login", {
+          email: user.email,
+          password: user.password
+        }, config);
+      } else {
+        response = await axios.post("/api/user", {
+          name: user.name,
+          email: user.email,
+          password: user.password,
+          pic: user.pic
+        }, config);
+      }
+
+      localStorage.setItem("userInfo", JSON.stringify(response.data));
+      history.push("/chats");
+    } catch (error) {
+      setError(error.response?.data?.message || "Ocurrió un error inesperado");
+    } finally {
+      setLoading(false);
     }
   };
 
   const toggleForm = (formType) => {
     setIsLogin(formType === "login");
+    setError(null);
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      {/* Header con logo */}
-      <div className="text-center md:mb-8">
+    <div className="flex flex-col items-center justify-center min-h-screen md:p-4 ">
+      {/* Header */}
+      <div className="text-center mb-8">
         <div className="md:w-20 md:h-20 w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg">
-          <span className="text-white md:text-2xl  text-sm font-bold">MT</span>
+          <span className="text-white md:text-2xl text-md font-bold">MT</span>
         </div>
-        <h1 className="md:text-4xl text-lg font-light text-gray-800">MyTalk App</h1>
-        <p className="text-gray-600 mt-2 md:text-xl lg:text-2xl text-sm mb-2">Conéctate y comunícate</p>
+        <h1 className="md:text-4xl text-xl font-light text-gray-800">MyTalk App</h1>
+        <p className="text-gray-600 mt-2 text-md">Conéctate y comunícate</p>
       </div>
 
-      {/* Toggle buttons */}
-      <div className="flex justify-center md:mb-6 mb-2 md:w-full w-[200px] max-w-md bg-white/20 backdrop-blur-md rounded-full p-1 shadow-inner">
+      {/* Toggle Buttons */}
+      <div className="flex justify-center mb-6 md:w-full w-[200px] max-w-md bg-white/20 backdrop-blur-md rounded-full p-1 shadow-inner">
         <button
           onClick={() => toggleForm("login")}
-          className={`w-1/2 md:py-3 py-0 rounded-full transition-all ease duration-100 font-medium md:text-xl text-sm ${
+          className={`w-1/2 py-3 rounded-full transition-all ease duration-100 font-medium ${
             isLogin
               ? "bg-white/80 backdrop-blur-md shadow-md text-blue-600"
               : "bg-transparent text-gray-600 hover:bg-white/10"
@@ -57,7 +171,7 @@ export const LoginForm = () => {
         </button>
         <button
           onClick={() => toggleForm("signup")}
-          className={`w-1/2 md:py-3 py-0 rounded-full transition-all ease duration-100 font-medium ${
+          className={`w-1/2 py-3 rounded-full transition-all ease duration-100 font-medium ${
             !isLogin
               ? "bg-white/80 backdrop-blur-md shadow-md text-purple-600"
               : "bg-transparent text-gray-600 hover:bg-white/10"
@@ -68,17 +182,21 @@ export const LoginForm = () => {
       </div>
 
       {/* Formulario */}
-      <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/50">
+      <div className="bg-white/80 backdrop-blur-lg p-8 rounded-2xl shadow-xl md:w-full w-[300px] max-w-md border border-white/50">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <span className="block sm:inline">{error}</span>
+          </div>
+        )}
+
         <h2 className="text-2xl font-semibold mb-6 text-center text-gray-800">
           {isLogin ? "Iniciar sesión" : "Crear cuenta"}
         </h2>
-        <form className="flex flex-col gap-5">
+
+        <form onSubmit={submitHandler} className="flex flex-col gap-5">
           {!isLogin && (
             <div className="space-y-2">
-              <label
-                htmlFor="name"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="name" className="text-sm font-medium text-gray-700">
                 Nombre de Usuario
               </label>
               <div className="relative">
@@ -88,7 +206,6 @@ export const LoginForm = () => {
                 <input
                   type="text"
                   name="name"
-                  id="name"
                   value={user.name}
                   onChange={handleChangeForm}
                   placeholder="Nombre de usuario"
@@ -99,10 +216,7 @@ export const LoginForm = () => {
           )}
 
           <div className="space-y-2">
-            <label
-              htmlFor="email"
-              className="text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="email" className="text-sm font-medium text-gray-700">
               Correo electrónico
             </label>
             <div className="relative">
@@ -111,7 +225,6 @@ export const LoginForm = () => {
               </div>
               <input
                 type="email"
-                id="email"
                 name="email"
                 value={user.email}
                 onChange={handleChangeForm}
@@ -122,10 +235,7 @@ export const LoginForm = () => {
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-gray-700"
-            >
+            <label htmlFor="password" className="text-sm font-medium text-gray-700">
               Contraseña
             </label>
             <div className="relative">
@@ -134,11 +244,10 @@ export const LoginForm = () => {
               </div>
               <input
                 type={showPassword ? "text" : "password"}
-                id="password"
                 name="password"
-                placeholder="Contraseña"
-                onChange={handleChangeForm}
                 value={user.password}
+                onChange={handleChangeForm}
+                placeholder="Contraseña"
                 className="pl-10 w-full p-3 rounded-lg bg-white/90 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all ease"
               />
               <button
@@ -153,10 +262,7 @@ export const LoginForm = () => {
 
           {!isLogin && (
             <div className="space-y-2">
-              <label
-                htmlFor="pic"
-                className="text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="pic" className="text-sm font-medium text-gray-700">
                 Imagen de perfil
               </label>
               <div className="relative">
@@ -165,18 +271,19 @@ export const LoginForm = () => {
                 </div>
                 <input
                   type="file"
-                  id="pic"
                   name="pic"
+                  onChange={handleImage}
                   className="pl-10 w-full p-3 rounded-lg bg-white/90 border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all ease"
-                  onChange={handleChangeForm}
                 />
               </div>
               {user.pic && (
-                <img
-                  src={user.pic}
-                  alt="Imagen de perfil"
-                  className="mt-4 rounded-full w-48 h-48 object-cover place-self-center"
-                />
+                <div className="mt-2 flex justify-center">
+                  <img 
+                    src={user.pic} 
+                    alt="Perfil" 
+                    className="w-32 h-32 object-cover rounded-full border-2 border-gray-300"
+                  />
+                </div>
               )}
             </div>
           )}
@@ -191,13 +298,15 @@ export const LoginForm = () => {
 
           <button
             type="submit"
+            disabled={loading}
             className={`mt-2 py-3 rounded-lg shadow-md transition-all duration-300 font-medium text-white ${
+              loading ? "bg-gray-400 cursor-not-allowed" : 
               isLogin
                 ? "bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800"
                 : "bg-gradient-to-r from-purple-500 to-purple-700 hover:from-purple-600 hover:to-purple-800"
             }`}
           >
-            {isLogin ? "Ingresar" : "Crear cuenta"}
+            {loading ? "Procesando..." : (isLogin ? "Ingresar" : "Crear cuenta")}
           </button>
         </form>
 

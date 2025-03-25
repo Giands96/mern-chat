@@ -12,8 +12,6 @@ function App() {
 
   return (
     <div className=''>
-      <Link to="/home">Home</Link>
-
       <Route path="/" component ={Homepage} exact/>
       <Route path="/chats" component={ChatPage}/>
     </div>
