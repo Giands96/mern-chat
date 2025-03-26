@@ -23,7 +23,7 @@ export const ChatPage = () => {
             Cerrar Sesión
           </button>
         </div>
-        {/* Contenido de la página de chats */}
+        {}
         <div className="text-center text-gray-600">
           Bienvenido a tu aplicación de chats
         </div>
