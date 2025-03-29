@@ -1,7 +1,7 @@
 const asyncHandler = require('express-async-handler')
 const User = require('../models/userModel')
 const generateToken = require('../config/generateToken')
-
+const cloudinary = require('../config/cloudinaryConfig');
 
 const registerUser = asyncHandler ( async (req,res) =>{
     const {name,email,password,pic} = req.body;
@@ -69,4 +69,28 @@ const allUsers = asyncHandler (async(req,res)=>{
     res.send(users);
 })
 
-module.exports = { registerUser, authUser, allUsers }
+const updateUserProfile = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.user._id);
+  
+    if (user) {
+      user.name = req.body.name || user.name;
+      user.pic = req.body.pic || user.pic;
+  
+      const updatedUser = await user.save();
+      res.json({
+        _id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        pic: updatedUser.pic,
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404);
+      throw new Error('Usuario no encontrado');
+    }
+  });
+
+
+  
+
+module.exports = { registerUser, authUser, allUsers, updateUserProfile }
