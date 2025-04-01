@@ -14,7 +14,7 @@ const chatRoutes = require('./routes/chatRoutes')
 dotenv.config();
 connectDB()
 app.use(cors({
-    origin: ["https://mern-chat-qwl4.vercel.app/"],
+    origin: ["https://mern-chat-qwld.vercel.app"],
     credentials: true
   }));
 
