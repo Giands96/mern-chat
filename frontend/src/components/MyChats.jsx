@@ -3,11 +3,12 @@ import { ChatState } from '../Context/ChatProvider';
 import axios from 'axios';
 import { ChatLoading } from './ChatLoading';
 import { getSender } from '../config/ChatLogics';
+import { GroupChatModal } from '../miscellaneous/GroupChatModal';
 
 export const MyChats = () => {
   const [loggedUser, setLoggedUser] = useState()
   const { selectedChat, setSelectedChat, user, chats, setChats} = ChatState();
-
+  const [openGroupChat, setOpenGroupChat] = useState(false);
   
   const fetchChats = async () => {
     try {
@@ -26,6 +27,9 @@ export const MyChats = () => {
     }
   }
 
+  const toggleGroupChat = () =>{
+    setOpenGroupChat(!openGroupChat);
+  }
   
   useEffect(()=>{
     setLoggedUser(JSON.parse(localStorage.getItem('userInfo')));
@@ -36,13 +40,23 @@ export const MyChats = () => {
         <div className='pt-5 px-5 text-2xl md:text-lg flex justify-between w-full'>
           <span className='text-3xl font-light'>My Chats</span>
           <div>
-            <button className='bg-gray-100 p-2 hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer rounded-lg' >
+            
+              <button className='bg-gray-100 p-2 hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer rounded-lg' onClick={toggleGroupChat}>
               New Group Chat +
-            </button>
+              </button>
+            
+           {
+              openGroupChat && (
+                <>
+                  <GroupChatModal/>
+                  {console.log("OPEN")}
+                </>
+              )
+            }
           </div>
           
         </div>
-        <div className='flex flex-col m-5 bg-gray-100 w-full h-full rounded-lg overflow-y-scroll scrollbar-hide'>
+        <div className='flex flex-col m-5 bg-gray-100 w-full h-full rounded-lg overflow-y-hidden'>
             {
               chats? (
                 chats.map((chat) => {
