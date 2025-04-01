@@ -10,7 +10,7 @@ export const MyChats = () => {
   const { selectedChat, setSelectedChat, user, chats, setChats} = ChatState();
   const [openGroupChat, setOpenGroupChat] = useState(false);
 
-
+  const API_URL = import.meta.env.VITE_API_URL;
   const fetchChats = async () => {
     try {
         const config = {
@@ -19,7 +19,7 @@ export const MyChats = () => {
           }
         };
 
-        const { data } = await axios.get('/api/chat', config);
+        const { data } = await axios.get(`${API_URL}/api/chat`, config);
         console.log(data);
         setChats(data);
 

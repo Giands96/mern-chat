@@ -50,6 +50,7 @@ export const LoginForm = () => {
     }
   };
   
+  const API_URL = import.meta.env.VITE_API_URL;
   
 
   const handleImage = async (e) => {
@@ -117,14 +118,16 @@ export const LoginForm = () => {
         headers: { 'Content-Type': 'application/json' }
       };
 
+      //Login
       let response;
       if (isLogin) {
-        response = await axios.post("/api/user/login", {
+        response = await axios.post(`${API_URL}/api/user/login`, {
           email: user.email,
           password: user.password
         }, config);
+      //Register
       } else {
-        response = await axios.post("/api/user", {
+        response = await axios.post(`${API_URL}/api/user`, {
           name: user.name,
           email: user.email,
           password: user.password,

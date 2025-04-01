@@ -11,7 +11,8 @@ export const GroupChatModal = ({isOpen,toggleModal, children }) => {
     const [searchResult, setSearchResult] = useState([]);
     const [state, setState] = useState([]);
     const [loading, setLoading] = useState(false);
-
+    const API_URL = import.meta.env.VITE_API_URL;
+    
     const handleSearch = async (query) => {
         setSearch(query);
         if(!query){
@@ -27,7 +28,7 @@ export const GroupChatModal = ({isOpen,toggleModal, children }) => {
                 },
             };
             
-            const { data } = await axios.get(`/api/user?search=${search}`, config);
+            const { data } = await axios.get(`${API_URL}/api/user?search=${search}`, config);
             //console.log(data)
             setLoading(false);
             setSearchResult(data);
