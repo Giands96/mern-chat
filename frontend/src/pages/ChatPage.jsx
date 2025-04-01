@@ -1,32 +1,23 @@
-import React, { useEffect, useState } from 'react'
-import axios from 'axios'
+import React from 'react'
+import { ChatState } from '../Context/ChatProvider'
+import { SideDrawer } from '../miscellaneous/SideDrawer'
+import { MyChats } from '../components/MyChats'
+import { ChatBox } from '../components/ChatBox'
+
 
 export const ChatPage = () => {
 
-    const [chats, setChats] = useState([]);
-
-    const fetchChats = async () => {
-    try {
-      const { data } = await axios.get("/api/chat");
-      setChats(data);
-
-    } catch (error) {
-      console.error("Error al cargar chats:", error);
-    }
-  };
-
-    useEffect( ()=> {
-        fetchChats()
-    },[]);
-
+  const {user} = ChatState()
   return (
-    <div>
-        {chats.map((chat) => <div key={chat._id}>
-            {chat.chatName} <br />
-            <span>Este es el id del chat </span>
-            {chat._id}
-        </div>)}
+    <div className='w-full'>
+      {user && <SideDrawer/>}
+      <div className='w-full flex justify-between p-5'>
+        {user && <MyChats/>}
+        <div className='hidden md:block'>
+        {user && <ChatBox/>}
+        </div>
+        
+      </div>
     </div>
   )
-  
 }
