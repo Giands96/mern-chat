@@ -6,14 +6,17 @@ const ChatContext = createContext()
 const ChatProvider = ({children}) => {
     const [user, setUser] = useState()
     const history = useHistory()
+    const [selectedChat, setSelectedChat] = useState()
+    const [chats, setChats] = useState([]);
+
 
     useEffect(()=>{
        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
        setUser(userInfo);
 
-       if(!userInfo){
-        history.push('/')
-       }
+       //if(!userInfo){
+        //history.push('/')
+       //}
     },[history]);
 
     //Metodo para actualizar info Usuario
@@ -30,7 +33,7 @@ const ChatProvider = ({children}) => {
 
 
     return (
-        <ChatContext.Provider value={{user, setUser,updateUser}}>
+        <ChatContext.Provider value={{user, setUser,updateUser, setSelectedChat, chats, setChats, selectedChat}}>
             {children}
         </ChatContext.Provider>
     );

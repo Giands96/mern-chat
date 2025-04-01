@@ -31,7 +31,7 @@ const uploadImageRoute = (req, res) => {
     // Cloudinary automatically uploads the file
     res.status(200).json({ 
       message: 'Image uploaded successfully', 
-      url: req.file.path // Cloudinary URL of the uploaded image
+      url: req.file.path // URL generada por Cloudinary
     });
   } catch (error) {
     res.status(500).json({ message: 'Image upload failed', error: error.message });

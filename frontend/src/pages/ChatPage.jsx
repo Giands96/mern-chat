@@ -11,7 +11,7 @@ export const ChatPage = () => {
   return (
     <div className='w-full'>
       {user && <SideDrawer/>}
-      <div className='w-full flex justify-between p-10'>
+      <div className='w-full flex justify-between p-5'>
         {user && <MyChats/>}
         {user && <ChatBox/>}
       </div>

@@ -71,7 +71,8 @@ const allUsers = asyncHandler (async(req,res)=>{
 
 const updateUserProfile = asyncHandler(async (req, res) => {
     const user = await User.findById(req.user._id);
-  
+    console.log("Datos recibidos", req.user.name, req.user.email, req.user.pic)
+
     if (user) {
       user.name = req.body.name || user.name;
       user.pic = req.body.pic || user.pic;

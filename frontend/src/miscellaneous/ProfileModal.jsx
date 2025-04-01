@@ -11,7 +11,7 @@ export const ProfileModal = ({ isOpen, onClose, user }) => {
   const [loading, setLoading] = useState(false);
   const { updateUser } = ChatState();
 
-  const handleImageChange = (e) => {
+  /*const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setImageFile(file);
@@ -24,6 +24,7 @@ export const ProfileModal = ({ isOpen, onClose, user }) => {
       reader.readAsDataURL(file);
     }
   };
+  */
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -103,7 +104,7 @@ export const ProfileModal = ({ isOpen, onClose, user }) => {
                 alt="Profile" 
                 className="w-32 h-32 rounded-full object-cover"
               />
-              <label 
+             {/* <label 
                 htmlFor="profile-upload"
                 className="absolute bottom-0 right-0 bg-blue-500 text-white rounded-full p-2 cursor-pointer hover:bg-blue-600"
               >
@@ -115,7 +116,9 @@ export const ProfileModal = ({ isOpen, onClose, user }) => {
                   className="hidden"
                   onChange={handleImageChange}
                 />
+                
               </label>
+              */}
             </div>
           </div>
 
