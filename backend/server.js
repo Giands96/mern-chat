@@ -14,7 +14,7 @@ const chatRoutes = require('./routes/chatRoutes')
 dotenv.config();
 connectDB()
 app.use(cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: ["https://mern-chat-qwl4.vercel.app/"],
     credentials: true
   }));
 
@@ -32,6 +32,7 @@ app.post('/api/upload', upload.single('image'), uploadImageRoute);
 
 app.use(notFound);
 app.use(errorHandler);
+
 
 const PORT = process.env.PORT || 5000;
 
