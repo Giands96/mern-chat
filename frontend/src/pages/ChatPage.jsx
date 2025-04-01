@@ -13,7 +13,10 @@ export const ChatPage = () => {
       {user && <SideDrawer/>}
       <div className='w-full flex justify-between p-5'>
         {user && <MyChats/>}
+        <div className='hidden md:block'>
         {user && <ChatBox/>}
+        </div>
+        
       </div>
     </div>
   )

@@ -13,7 +13,7 @@ export const SideDrawer = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
-  const { user, selectedChat, setSelectedChat, chats, setChats } = ChatState();
+  const { user, setSelectedChat, chats, setChats } = ChatState();
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -93,20 +93,21 @@ export const SideDrawer = () => {
   };
 
   return (
-    <div className="justify-between flex bg-white items-center p-2">
+    <div className="fixed w-full justify-between flex bg-white items-center px-5 py-2">
+      <div>
+        <span className="text-3xl font-light">MyTalkApp!</span>
+      </div>
       <div className="rounded-md items-center">
         <button
           title="Search for users to chat"
-          className="bg-gray-100 p-2 hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer"
+          className="bg-gray-100 px-10 py-2 rounded-xl hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer"
           onClick={toggleOpenSearch}
         >
           <Search />
           Search users
         </button>
       </div>
-      <div>
-        <span className="text-3xl font-light">MyTalkApp!</span>
-      </div>
+      
       <div id="menu" className="flex items-center gap-2">
         <div>
           <button

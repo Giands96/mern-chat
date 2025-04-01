@@ -9,7 +9,8 @@ export const MyChats = () => {
   const [loggedUser, setLoggedUser] = useState()
   const { selectedChat, setSelectedChat, user, chats, setChats} = ChatState();
   const [openGroupChat, setOpenGroupChat] = useState(false);
-  
+
+
   const fetchChats = async () => {
     try {
         const config = {
@@ -36,7 +37,7 @@ export const MyChats = () => {
     fetchChats();
   },[])
   return (
-    <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} flex-col items-center bg-white w-full h-[500px] border-gray-100 scrollbar-hide border-1 rounded-lg md:w-[31%] md:h-[90vh] md:mr-2`}>
+    <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} flex-col items-center bg-white w-full h-[500px] mt-15 border-gray-100 lg:w-[40%]  scrollbar-hide border-1 rounded-lg md:w-[31%] md:h-[90vh] md:mr-2`}>
         <div className='pt-5 px-5 text-2xl md:text-lg flex justify-between w-full'>
           <span className='text-3xl font-light'>My Chats</span>
           <div>
@@ -45,18 +46,17 @@ export const MyChats = () => {
               New Group Chat +
               </button>
             
-           {
-              openGroupChat && (
+           {openGroupChat && (
                 <>
-                  <GroupChatModal/>
-                  {console.log("OPEN")}
+                  <GroupChatModal isOpen={openGroupChat} toggleModal={toggleGroupChat}/>
+                  
                 </>
               )
             }
           </div>
           
         </div>
-        <div className='flex flex-col m-5 bg-gray-100 w-full h-full rounded-lg overflow-y-hidden'>
+        <div className='flex flex-col m-5 bg-gray-100 w-full h-full rounded-lg overflow-y-scroll '>
             {
               chats? (
                 chats.map((chat) => {
