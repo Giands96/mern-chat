@@ -9,7 +9,8 @@ const colors = require('colors');
 const { upload, uploadImageRoute } = require('./config/cloudinaryConfig');
 const userRoutes = require('./routes/userRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
-const chatRoutes = require('./routes/chatRoutes')
+const chatRoutes = require('./routes/chatRoutes');
+const messageRoutes = require('./routes/messageRoutes');
 
 dotenv.config();
 connectDB()
@@ -27,7 +28,8 @@ app.get('/api/upload/test',(req,res) => {
     res.send("la API está ejecutandose satisfactoriamente");
 });
 app.use('/api/chat',chatRoutes);
-app.use('/api/user', userRoutes)
+app.use('/api/user', userRoutes);
+app.use('/api/message',messageRoutes)
 app.post('/api/upload', upload.single('image'), uploadImageRoute);
 
 app.use(notFound);
