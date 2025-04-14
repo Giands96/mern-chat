@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { BellRing, Bolt, LogOut, Menu, Search, User } from "lucide-react";
 import { ChatState } from "../Context/ChatProvider";
@@ -24,6 +24,38 @@ export const SideDrawer = () => {
     history.push("/");
   }
   
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      if (search.trim() !== "") {
+        fetchSearchResults();
+      } else {
+        setSearchResult([]);
+      }
+    }, 500); // espera 500ms luego de que el usuario deja de tipear
+
+    return () => clearTimeout(delayDebounce); // limpia el timeout anterior si el usuario sigue escribiendo
+  }, [search]);
+
+  const fetchSearchResults = async () => {
+    try {
+      setLoading(true);
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      const { data } = await axios.get(`/api/user?search=${search}`, config);
+      setSearchResult(data);
+    } catch (error) {
+      alert("Error fetching search results");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const handleSearch = async () => {
     if(!search){
       alert('Please enter a search term');
@@ -93,17 +125,17 @@ export const SideDrawer = () => {
   };
 
   return (
-    <div className="fixed w-full justify-between flex bg-white items-center px-5 py-2">
+    <div className="w-full justify-between flex bg-white items-center px-5 py-2">
       <div>
-        <span className="text-3xl font-light">MyTalkApp!</span>
+        <span className="text-lg font-light md:text-3xl">MyTalkApp!</span>
       </div>
-      <div className="rounded-md items-center">
+      <div className="rounded-md items-center mx-2 md:mx-0">
         <button
           title="Search for users to chat"
-          className="bg-gray-100 px-10 py-2 rounded-xl hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer"
+          className="bg-gray-100 items-center text-[0px] md:text-xl md:px-10 md:py-2 rounded-xl hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer "
           onClick={toggleOpenSearch}
         >
-          <Search />
+          <Search className=" p-1" />
           Search users
         </button>
       </div>
@@ -206,7 +238,7 @@ export const SideDrawer = () => {
       >
         <div
           className={`
-            bg-white w-1/5 h-full 
+            bg-white md:w-[500px] h-full 
             transform transition-all duration-500 ease-in-out
             ${isSearchOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"}
             shadow-lg
@@ -214,8 +246,9 @@ export const SideDrawer = () => {
           id="searchUsersContainer"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="p-5">
+          <div className="p-5 flex justify-between">
             <span className="font-light text-2xl">Search Users</span>
+            <button onClick={() => setIsSearchOpen(false)}>X</button>
           </div>
           <hr />
           <div className="m-5 flex gap-5">
@@ -223,7 +256,7 @@ export const SideDrawer = () => {
               type="text"
               placeholder="Search for users"
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-cyan-600"
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => (setSearch(e.target.value),console.log("ha cambiado",e.target.value))}
               value={search}
             />
             <button className="bg-blue-500 text-white px-4 rounded-lg hover:cursor-pointer" onClick={handleSearch}>

@@ -5,7 +5,8 @@ import { ChatLoading } from './ChatLoading';
 import { getSender } from '../config/ChatLogics';
 import { GroupChatModal } from '../miscellaneous/GroupChatModal';
 
-export const MyChats = () => {
+
+export const MyChats = ({fetchAgain}) => {
   const [loggedUser, setLoggedUser] = useState()
   const { selectedChat, setSelectedChat, user, chats, setChats} = ChatState();
   const [openGroupChat, setOpenGroupChat] = useState(false);
@@ -35,15 +36,15 @@ export const MyChats = () => {
   useEffect(()=>{
     setLoggedUser(JSON.parse(localStorage.getItem('userInfo')));
     fetchChats();
-  },[])
+  },[fetchAgain])
   return (
-    <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} flex-col items-center bg-white w-full h-[500px] mt-15 border-gray-100 lg:w-[40%]  scrollbar-hide border-1 rounded-lg md:w-[31%] md:h-[90vh] md:mr-2`}>
+    <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} flex-col items-center bg-white w-full  border-gray-100 lg:w-[40%]  scrollbar-hide border-1 rounded-lg md:w-[31%] h-full md:mr-2`}>
         <div className='pt-5 px-5 text-2xl md:text-lg flex justify-between w-full'>
           <span className='text-3xl font-light'>My Chats</span>
           <div>
             
-              <button className='bg-gray-100 p-2 hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer rounded-lg' onClick={toggleGroupChat}>
-              New Group Chat +
+              <button className='bg-gray-100 p-2 hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer rounded-lg text-sm md:text-md' onClick={toggleGroupChat}>
+              New Group +
               </button>
             
            {openGroupChat && (
@@ -61,7 +62,7 @@ export const MyChats = () => {
               chats? (
                 chats.map((chat) => {
                   return (
-                    <div key={chat._id} className={`flex items-center gap-2 p-3 hover:bg-gray-200 transition-all rounded-lg ${selectedChat === chat ? 'bg-gray-200' : ''}`} onClick={()=>setSelectedChat(chat)}>
+                    <div key={chat._id} className={`flex items-center gap-2 p-3 hover:bg-gray-200 transition-all duration-75 rounded-lg ${selectedChat === chat ? 'bg-gradient-to-r from-violet-400 to-emerald-600 text-white' : ''}`} onClick={()=>setSelectedChat(chat)}>
                       <img src={chat.isGroupChat ? chat.chatName : chat.users[0]._id === loggedUser._id ? chat.users[1].pic : chat.users[0].pic} alt="" className='w-[40px] h-[40px] rounded-full'/>
                       <span className='font-semibold'>{chat.isGroupChat ? chat.chatName : chat.users[0]._id === loggedUser._id ? chat.users[1].name : chat.users[0].name}</span>
 
