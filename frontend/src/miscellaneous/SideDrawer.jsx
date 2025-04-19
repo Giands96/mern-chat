@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
 import { BellRing, Bolt, LogOut, Menu, Search, User } from "lucide-react";
 import { ChatState } from "../Context/ChatProvider";
-import { ProfileModal } from "./ProfileModal";
+import ProfileModal from "./ProfileModal";
 import axios from "axios";
 import { ChatLoading } from "../components/ChatLoading";
 import { UserListItem } from "../UserAvatar/UserListItem";
@@ -17,13 +17,14 @@ export const SideDrawer = () => {
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   // const [notifications, setNotifications] = useState([]);
-  
+
   const logoutHandler = () => {
     localStorage.removeItem("userInfo");
     history.push("/");
-  }
-  
+  };
+
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
       if (search.trim() !== "") {
@@ -55,47 +56,48 @@ export const SideDrawer = () => {
     }
   };
 
-
   const handleSearch = async () => {
-    if(!search){
-      alert('Please enter a search term');
+    if (!search) {
+      alert("Please enter a search term");
       return;
     }
-    
+
     try {
+      setIsLoading(true);
       setLoading(true);
       const config = {
         headers: {
-          
           "Content-type": "application/json",
           Authorization: `Bearer ${user.token}`,
-        }
-      }
-      const {data} = await axios.get(`/api/user?search=${search}`, config);
+        },
+      };
+      const { data } = await axios.get(`/api/user?search=${search}`, config);
       setLoading(false);
+      setIsLoading(false);
       setSearchResult(data);
     } catch (error) {
-      alert('Error fetching search results');
+      alert("Error fetching search results");
       console.error(error);
       setLoading(false);
+      setIsLoading(false);
     }
-  }
+  };
 
   const toggleOpenSearch = () => {
     setIsSearchOpen(!isSearchOpen);
-  }
+  };
 
   const toggleDropdown = () => {
     setIsOpenDropdown(!isOpenDropdown);
   };
-  
+
   const openProfileModal = () => {
     setIsProfileModalOpen(true);
     setIsOpenDropdown(false);
-  }
+  };
 
   const accessChat = async (userId) => {
-    try {  
+    try {
       setLoadingChat(true);
       const config = {
         headers: {
@@ -103,24 +105,27 @@ export const SideDrawer = () => {
           Authorization: `Bearer ${user.token}`,
         },
       };
-      
-      const { data } = await axios.post("/api/chat",{ userId },config);
-      console.log("User ID" , userId);
+
+      const { data } = await axios.post("/api/chat", { userId }, config);
+      console.log("User ID", userId);
       console.log("Chat data", data);
-      
+
       // Si el chat no existe@S en la lista actual, agrégalo
       if (!chats.find((c) => c._id === data._id)) {
         setChats([data, ...chats]);
       }
-      
+
       setSelectedChat(data);
       setLoadingChat(false);
       setIsSearchOpen(false);
       history.push("/chats");
     } catch (error) {
       console.error("Error completo:", error);
-  alert('Error fetching chat: ' + (error.response?.data?.message || error.message));
-  setLoadingChat(false);
+      alert(
+        "Error fetching chat: " +
+          (error.response?.data?.message || error.message)
+      );
+      setLoadingChat(false);
     }
   };
 
@@ -139,7 +144,7 @@ export const SideDrawer = () => {
           Search users
         </button>
       </div>
-      
+
       <div id="menu" className="flex items-center gap-2">
         <div>
           <button
@@ -154,7 +159,11 @@ export const SideDrawer = () => {
             onClick={toggleDropdown}
             className="flex items-center gap-2 hover:bg-gray-100 p-1 rounded-lg transition-colors hover:cursor-pointer"
           >
-            <img src={user.pic} className="w-8 h-8 bg-cover rounded-full" alt={user.name} />
+            <img
+              src={user.pic}
+              className="w-8 h-8 bg-cover rounded-full"
+              alt={user.name}
+            />
             <span>{user.name}</span>
             <Menu className="w-4" />
           </button>
@@ -210,7 +219,7 @@ export const SideDrawer = () => {
                   transition-colors
                   items-center
                 "
-                 onClick={logoutHandler}
+                  onClick={logoutHandler}
                 >
                   <LogOut className="w-4 h-4" /> Logout
                 </button>
@@ -220,8 +229,8 @@ export const SideDrawer = () => {
         </div>
       </div>
 
-      <ProfileModal 
-        isOpen={isProfileModalOpen} 
+      <ProfileModal
+        isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
         user={user}
       />
@@ -232,7 +241,11 @@ export const SideDrawer = () => {
           fixed top-0 left-0 w-full h-screen 
           bg-gray-900/50 
           transition-all duration-500 ease-in-out
-          ${isSearchOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"}
+          ${
+            isSearchOpen
+              ? "opacity-100 visible"
+              : "opacity-0 invisible pointer-events-none"
+          }
         `}
         onClick={() => setIsSearchOpen(false)}
       >
@@ -240,7 +253,11 @@ export const SideDrawer = () => {
           className={`
             bg-white md:w-[500px] h-full 
             transform transition-all duration-500 ease-in-out
-            ${isSearchOpen ? "translate-x-0 opacity-100" : "-translate-x-full opacity-0"}
+            ${
+              isSearchOpen
+                ? "translate-x-0 opacity-100"
+                : "-translate-x-full opacity-0"
+            }
             shadow-lg
           `}
           id="searchUsersContainer"
@@ -256,13 +273,23 @@ export const SideDrawer = () => {
               type="text"
               placeholder="Search for users"
               className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-cyan-600"
-              onChange={(e) => (setSearch(e.target.value),console.log("ha cambiado",e.target.value))}
+              onChange={(e) => setSearch(e.target.value)}
               value={search}
             />
-            <button className="bg-blue-500 text-white px-4 rounded-lg hover:cursor-pointer" onClick={handleSearch}>
-              Search
+            <button
+              className="bg-blue-500 text-white px-4 rounded-lg hover:cursor-pointer"
+              onClick={handleSearch}
+            >
+
+                Search
+
             </button>
           </div>
+          {isLoading && (
+            <div className="flex justify-center items-center my-4">
+              <span className="loader"></span>
+            </div>
+          )}
           <div className="m-5 flex flex-col gap-2">
             {loading ? (
               <ChatLoading />
@@ -275,7 +302,11 @@ export const SideDrawer = () => {
                 />
               ))
             )}
-            {loadingChat && <div className="flex justify-center"><ChatLoading /></div>}
+            {loadingChat && (
+              <div className="flex justify-center">
+                <ChatLoading />
+              </div>
+            )}
           </div>
         </div>
       </div>
