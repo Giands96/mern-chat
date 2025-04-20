@@ -4,13 +4,13 @@ import axios from 'axios';
 import { UserListItem } from '../UserAvatar/UserListItem';
 import { UserBadgeItem } from '../UserAvatar/UserBadgeItem';
 
-export const GroupChatModal = ({isOpen,toggleModal, children }) => {
+export const GroupChatModal = ({isOpen,toggleModal }) => {
     const [groupChatName, setGroupChatName] = useState();
     const [selectedUsers, setSelectedUsers] = useState([]);
     const [search, setSearch] = useState("");
     const [searchResult, setSearchResult] = useState([]);
-    const [state, setState] = useState([]);
     const [loading, setLoading] = useState(false);
+    
 
     const handleSearch = async (query) => {
         setSearch(query);
@@ -38,7 +38,30 @@ export const GroupChatModal = ({isOpen,toggleModal, children }) => {
     }
 
     const handleSubmit = () => {
-
+      if (!groupChatName || !selectedUsers) {
+        alert("Please fill all the fields");
+        return;
+      }
+      const config = {
+        headers: {
+          "Content-type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      
+      axios.post('/api/chat/group', {
+        name: groupChatName,
+        users: JSON.stringify(selectedUsers.map((u) => u._id)),
+      }, config).then((res) => {
+        setChats([res.data, ...chats]);
+        
+        setLoading(false);
+        toggleModal();
+        console.log(res.data);
+      }).catch((error) => {
+        alert('Error creating group chat');
+        console.error(error);
+      });
     }
 
     const handleDelete = (userToDelete) => {

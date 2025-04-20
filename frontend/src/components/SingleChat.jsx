@@ -3,6 +3,7 @@ import {ChatState} from '../Context/ChatProvider'
 import { ArrowLeftFromLine, EllipsisVertical } from 'lucide-react';
 import { getSender, getSenderUser } from '../config/ChatLogics';
 import ProfileModal from '../miscellaneous/ProfileModal';
+import { UpdateGroupChatModal } from '../miscellaneous/UpdateGroupChatModal';
 
 export const SingleChat = ({fetchAgain, setFetchAgain}) => {
   const {messages, setMessages} = useState([]);
@@ -26,8 +27,8 @@ export const SingleChat = ({fetchAgain, setFetchAgain}) => {
           <div className='flex items-center gap-2'>
             {getSenderUser(user, selectedChat.users) ? (
               <>
-                <img src={selectedChat.users[1].pic} className='w-8 h-8 rounded-full bg-cover ' alt="User Avatar" />
-                <span>{getSender(user,selectedChat.users)}</span>
+                <img src={selectedChat.users[1].pic} className='w-8 h-8 rounded-full' alt="User Avatar" />
+                <span className='text-xl font-light'>{getSender(user,selectedChat.users)}</span>
                 <button onClick={handleProfileClick} title='Mirar Perfil' className='text-gray-400 hover:cursor-pointer hover:bg-neutral-100 rounded-sm transition-colors'><EllipsisVertical /></button>
                 
 {openProfile && (
@@ -84,12 +85,24 @@ export const SingleChat = ({fetchAgain, setFetchAgain}) => {
         
       
         </>): (<>
-        {selectedChat.chatName}
-        
+        <div className='flex items-center gap-2'>
+        <img className='w-8 h-8 rounded-full' src="../../public/groupchat.webp" alt="" />
+        <span className='text-xl font-light' >{selectedChat.chatName}</span>
+        <span className='text-neutral-400 font-extralight'>{selectedChat.users.length > 2 ? selectedChat.users.map((user) => user.name).join(', ') : selectedChat.users.map((user) => user.name).join(', ') + "..."}</span>
+        <UpdateGroupChatModal fetchAgain={fetchAgain} setFetchAgain={setFetchAgain} />{
+          
+
+         }
+        </div>
+          
         </>)}
         <button onClick={() => setSelectedChat("")} className='bg-gray-200 text-gray-800 px-4 py-2 rounded-md cursor-pointer hover:bg-gray-300 transition'><ArrowLeftFromLine /></button>
+        
       </div>
-      {/* Chat messages will go here */}
+      <div className='flex flex-col h-full overflow-y-hidden rounded-lg bg-neutral-100 mt-4 p-2'>
+            <span>ChatMessages</span>
+          </div>
+      
     </div>
   </div>
 ) : (

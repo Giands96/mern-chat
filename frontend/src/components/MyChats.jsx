@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { ChatState } from '../Context/ChatProvider';
 import axios from 'axios';
 import { ChatLoading } from './ChatLoading';
-import { getSender } from '../config/ChatLogics';
 import { GroupChatModal } from '../miscellaneous/GroupChatModal';
 import "../styles/loader.css"
 
@@ -72,19 +71,14 @@ export const MyChats = ({fetchAgain}) => {
                   onClick={() => setSelectedChat(chat)}
                 >
                   <img 
-                    src={chat.isGroupChat ? chat.chatName : chat.users[0]._id === loggedUser._id ? chat.users[1].pic : chat.users[0].pic} 
+                    src={chat.isGroupChat ? "../../public/groupchat.webp" : chat.users[0]._id === loggedUser._id ? chat.users[1].pic : chat.users[0].pic} 
                     alt="" 
                     className='w-[40px] h-[40px] rounded-full'
                   />
                   <span className='font-semibold'>
                     {chat.isGroupChat ? chat.chatName : chat.users[0]._id === loggedUser._id ? chat.users[1].name : chat.users[0].name}
                   </span>
-                  <span>
-                    {!chat.isGroupChat ? 
-                      getSender(loggedUser, chat.users) : 
-                      chat.chatName
-                    }
-                  </span>
+                  
                 </div>
               ))
             ) : (
