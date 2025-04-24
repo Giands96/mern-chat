@@ -31,9 +31,17 @@ const ChatProvider = ({children}) => {
         }));
     }
 
+    // Método para cerrar sesión y limpiar estados
+    const logout = () => {
+        localStorage.removeItem("userInfo");
+        setUser(null);
+        setSelectedChat(null);
+        setChats([]);
+        history.push('/');
+    }
 
     return (
-        <ChatContext.Provider value={{user, setUser,updateUser, setSelectedChat, chats, setChats, selectedChat}}>
+        <ChatContext.Provider value={{user, setUser, updateUser, setSelectedChat, chats, setChats, selectedChat, logout}}>
             {children}
         </ChatContext.Provider>
     );

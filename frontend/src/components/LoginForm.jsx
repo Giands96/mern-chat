@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Eye, EyeOff, User, Mail, Lock, Image } from "lucide-react";
 import axios from "axios";
 import { useHistory } from 'react-router-dom';
+import { ChatState } from "../Context/ChatProvider";
 
 export const LoginForm = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -16,6 +17,7 @@ export const LoginForm = () => {
   });
 
   const history = useHistory();
+  const { setUser: setChatUser, setSelectedChat, setChats } = ChatState();
 
   const handleChangeForm = (e) => {
     const { name, value } = e.target;
@@ -104,14 +106,9 @@ export const LoginForm = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
-    setError(null);
+    if (!validateForm()) return;
+
     setLoading(true);
-
-    if (!validateForm()) {
-      setLoading(false);
-      return;
-    }
-
     try {
       const config = {
         headers: { 'Content-Type': 'application/json' }
@@ -123,6 +120,7 @@ export const LoginForm = () => {
           email: user.email,
           password: user.password
         }, config);
+        console.log(response.data);
       } else {
         response = await axios.post("/api/user", {
           name: user.name,
@@ -132,7 +130,14 @@ export const LoginForm = () => {
         }, config);
       }
 
+      // Limpiar estados previos
+      setSelectedChat(null);
+      setChats([]);
+      
+      // Guardar la información del usuario y actualizar el contexto
       localStorage.setItem("userInfo", JSON.stringify(response.data));
+      setChatUser(response.data);
+      
       history.push("/chats");
     } catch (error) {
       setError(error.response?.data?.message || "Ocurrió un error inesperado");

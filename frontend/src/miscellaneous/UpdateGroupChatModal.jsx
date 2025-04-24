@@ -3,17 +3,17 @@ import { EllipsisVertical } from 'lucide-react';
 import { ChatState } from '../Context/ChatProvider';
 import { UserBadgeItem } from '../UserAvatar/UserBadgeItem';
 import { UserListItem } from '../UserAvatar/UserListItem';
-
 import axios from 'axios';
 
-export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
+
+export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [groupChatName, setGroupChatName] = useState('');
   const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [renameLoading, setRenameLoading] = useState(false);
-  const [selectedUsers, setSelectedUsers] = useState([]);
+
   
 
   const { selectedChat, setSelectedChat, user } = ChatState();
@@ -46,7 +46,7 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain }) => {
       }, config);
   
       user1._id === user._id ? setSelectedChat() : setSelectedChat(data);
-      
+      fetchMessages();
       // Usar la referencia local
       if (typeof updateFetchAgain === 'function') {
         updateFetchAgain(!currentFetchAgain);

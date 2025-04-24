@@ -57,7 +57,7 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
         
         setLoading(false);
         toggleModal();
-        console.log(res.data);
+        
       }).catch((error) => {
         alert('Error creating group chat');
         console.error(error);

@@ -13,7 +13,7 @@ export const SideDrawer = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
-  const { user, setSelectedChat, chats, setChats } = ChatState();
+  const { user, setSelectedChat, chats, setChats, logout } = ChatState();
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -21,8 +21,7 @@ export const SideDrawer = () => {
   // const [notifications, setNotifications] = useState([]);
 
   const logoutHandler = () => {
-    localStorage.removeItem("userInfo");
-    history.push("/");
+    logout();
   };
 
   useEffect(() => {

@@ -6,7 +6,7 @@ import { GroupChatModal } from '../miscellaneous/GroupChatModal';
 import "../styles/loader.css"
 
 export const MyChats = ({fetchAgain}) => {
-  const [loggedUser, setLoggedUser] = useState()
+  const [loggedUser, setLoggedUser] = useState();
   const { selectedChat, setSelectedChat, user, chats, setChats} = ChatState();
   const [openGroupChat, setOpenGroupChat] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,10 +34,16 @@ export const MyChats = ({fetchAgain}) => {
     setOpenGroupChat(!openGroupChat);
   }
   
+
+
   useEffect(() => {
-    setLoggedUser(JSON.parse(localStorage.getItem('userInfo')));
-    fetchChats();
-  }, [fetchAgain])
+    const storedUser = JSON.parse(localStorage.getItem('userInfo'));
+    setLoggedUser(storedUser);
+
+    if(user && user.token){
+      fetchChats();
+    }
+  }, [fetchAgain, user])
 
   return (
     <div className={`${selectedChat ? 'hidden md:flex' : 'flex'} flex-col items-center bg-white w-full border-gray-100 lg:w-[40%] scrollbar-hide border-1 rounded-lg md:w-[31%] h-full md:mr-2`}>
