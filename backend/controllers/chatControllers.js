@@ -68,7 +68,7 @@ const createGroupChat = asyncHandler(async(req,res)=>{
 
     let users;
     try {
-        // Try parsing the users, handling both string and array inputs
+        
         users = typeof req.body.users === 'string' 
             ? JSON.parse(req.body.users) 
             : req.body.users;
@@ -76,7 +76,7 @@ const createGroupChat = asyncHandler(async(req,res)=>{
         return res.status(400).send({message: "Invalid users format"});
     }
 
-    // Ensure users is an array
+    
     if (!Array.isArray(users)) {
         return res.status(400).send({message: "Users must be an array"});
     }
@@ -85,12 +85,12 @@ const createGroupChat = asyncHandler(async(req,res)=>{
         return res.status(400).send("Se requiere más de 2 personas para formar un chat grupal")
     }
 
-    // Use a Set to remove duplicates and ensure the creator is added
+    
     const userIds = new Set(users.map(user => 
         typeof user === 'string' ? user : user._id.toString()
     ));
     
-    // Check if the current user is already in the group
+    
     if (!userIds.has(req.user._id.toString())) {
         users.push(req.user);
     }
@@ -101,6 +101,7 @@ const createGroupChat = asyncHandler(async(req,res)=>{
             users: users,
             isGroupChat: true,
             groupAdmin: req.user,
+            pic: req.body.pic || "/groupchat.webp",
         }); 
        
         const fullGroupChat = await Chat.findOne({_id: groupChat._id})
@@ -138,6 +139,26 @@ const renameGroup = asyncHandler(async(req,res)=>{
 
 const addToGroup = asyncHandler(async(req,res)=>{
     const { chatId, userId } = req.body;
+    
+    // Verificar el chat para comprobar permisos
+    const chat = await Chat.findById(chatId);
+    
+    if (!chat) {
+        res.status(404);
+        throw new Error("Chat no encontrado");
+    }
+    
+    // Solo el admin puede añadir usuarios
+    if (chat.groupAdmin.toString() !== req.user._id.toString()) {
+        res.status(403);
+        throw new Error("Solo los administradores pueden añadir usuarios");
+    }
+    
+    // Comprobar si el usuario ya está en el grupo
+    if (chat.users.includes(userId)) {
+        res.status(400);
+        throw new Error("El usuario ya está en el grupo");
+    }
 
     const added = await Chat.findByIdAndUpdate(
         chatId,{
@@ -157,6 +178,29 @@ const addToGroup = asyncHandler(async(req,res)=>{
 
 const removeFromGroup = asyncHandler(async(req,res)=>{
     const { chatId, userId } = req.body;
+    
+    // Verificar el chat para comprobar permisos
+    const chat = await Chat.findById(chatId);
+    
+    if (!chat) {
+        res.status(404);
+        throw new Error("Chat no encontrado");
+    }
+    
+    // Solo el admin puede eliminar a otros usuarios
+    // Un usuario puede eliminarse a sí mismo
+    if (chat.groupAdmin.toString() !== req.user._id.toString() && 
+        userId !== req.user._id.toString()) {
+        res.status(403);
+        throw new Error("Solo los administradores pueden eliminar a otros usuarios");
+    }
+    
+    // Si intentan eliminar al admin y no son el admin
+    if (chat.groupAdmin.toString() === userId && 
+        req.user._id.toString() !== userId) {
+        res.status(403);
+        throw new Error("No puedes eliminar al administrador del grupo");
+    }
 
     const removed = await Chat.findByIdAndUpdate(
         chatId,{
@@ -174,4 +218,23 @@ const removeFromGroup = asyncHandler(async(req,res)=>{
     }
 })
 
-module.exports = { accessChat, fetchChats, createGroupChat, renameGroup, addToGroup, removeFromGroup }
+const updateGroupPic = asyncHandler(async(req,res)=>{
+    const { chatId, pic } = req.body;
+    
+    const updatedChat = await Chat.findByIdAndUpdate(
+        chatId,{
+            pic,
+        },{
+            new:true,
+        }
+    ).populate("users","-password").populate("groupAdmin","-password");
+
+    if(!updatedChat){
+        res.status(404);
+        throw new Error("Chat no encontrado");
+    } else{
+        res.json(updatedChat);
+    }
+});
+
+module.exports = { accessChat, fetchChats, createGroupChat, renameGroup, addToGroup, removeFromGroup, updateGroupPic }

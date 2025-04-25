@@ -4,10 +4,10 @@ import { User, Camera, Edit } from 'lucide-react';
 import { Dialog, DialogPanel, DialogTitle } from '@headlessui/react';
 import { ChatState } from '../Context/ChatProvider';
 
-export const ProfileModal = ({ isOpen, onClose, user }) => {
+const ProfileModal = ({ isOpen, onClose, user }) => {
   const [name, setName] = useState(user.name);
-  const [profileImage, setProfileImage] = useState(user.pic);
-  const [imageFile, setImageFile] = useState(null);
+  const [profileImage] = useState(user.pic);
+  const [imageFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const { updateUser } = ChatState();
 
@@ -183,3 +183,5 @@ export const ProfileModal = ({ isOpen, onClose, user }) => {
     </Dialog>
   );
 };
+
+export default ProfileModal;
