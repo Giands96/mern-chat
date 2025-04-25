@@ -1,4 +1,5 @@
-# 💬 MERN Chat App - Chatify
+# 💬 MERN Chat App - MyTalkApp!
+
 
 Un sistema de mensajería en tiempo real construido con el stack **MERN** (MongoDB, Express, React, Node.js). Los usuarios pueden registrarse, iniciar sesión, enviar mensajes.
 
