@@ -6,7 +6,6 @@ import ProfileModal from "./ProfileModal";
 import axios from "axios";
 import { ChatLoading } from "../components/ChatLoading";
 import { UserListItem } from "../UserAvatar/UserListItem";
-import "../styles/notification.css";
 import { getSender } from "../config/ChatLogics";
 
 export const SideDrawer = () => {

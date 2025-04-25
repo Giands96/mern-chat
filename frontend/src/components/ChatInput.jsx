@@ -1,4 +1,4 @@
-import React, { useState, memo } from 'react';
+import React, {  memo } from 'react';
 import { Send, Smile } from 'lucide-react';
 import EmojiPicker from 'emoji-picker-react';
 

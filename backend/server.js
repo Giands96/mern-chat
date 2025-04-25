@@ -11,6 +11,7 @@ const userRoutes = require('./routes/userRoutes');
 const { notFound, errorHandler } = require('./middleware/errorMiddleware');
 const chatRoutes = require('./routes/chatRoutes');
 const messageRoutes = require('./routes/messageRoutes');
+const path = require('path');
 
 
 dotenv.config();
@@ -26,14 +27,28 @@ app.use(express.json()); // aceptar data JSON
 app.get('/',(req,res) => {
     res.send("la API está ejecutandose satisfactoriamente");
 });
-app.get('/api/upload/test',(req,res) => {
-    res.send("la API está ejecutandose satisfactoriamente");
-});
+
 app.use('/api/chat',chatRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/message',messageRoutes)
 app.post('/api/upload', upload.single('image'), uploadImageRoute);
 
+//--------------------------Deployment--------------------------
+
+const __dirname1 = path.resolve();
+if(process.env.NODE_ENV === 'production'){
+    app.use(express.static(path.join(__dirname1,"/frontend/dist")));
+
+    app.get('*',(req,res)=>{
+        res.sendFile(path.resolve(__dirname1,"frontend","dist","index.html"));
+
+    });
+} else{
+    app.get("/",(req,res)=>{
+        res.send("API is running successfully")
+    });
+}
+//--------------------------Deployment--------------------------
 app.use(notFound);
 app.use(errorHandler);
 
