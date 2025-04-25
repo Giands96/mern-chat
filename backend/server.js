@@ -19,6 +19,8 @@ console.log("NODE_ENV: ", process.env.NODE_ENV);
 connectDB()
 app.use(cors({
     origin: ["https://mern-chat-2p49.onrender.com"],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
   }));
 
