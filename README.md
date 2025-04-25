@@ -9,8 +9,9 @@ Un sistema de mensajería en tiempo real construido con el stack **MERN** (Mongo
 
 - ⚙️ **Backend**: Node.js + Express
 - 🌐 **Frontend**: React + Vite
+- 🎨 **Estilos**: Tailwind
 - 📦 **Base de datos**: MongoDB (con Mongoose)
-- ☁️ **Cloudinary**: Subida y gestión de imágenes
+- ☁️ **Cloudinary**: Subida y gestión de imágenes (perfil y grupales)
 - 🔐 **Autenticación**: JWT + Bcrypt
 - 📡 **WebSockets**: Comunicación en tiempo real con Socket.io
 
@@ -20,12 +21,11 @@ Un sistema de mensajería en tiempo real construido con el stack **MERN** (Mongo
 
 - Registro e inicio de sesión con validación
 - Envío de mensajes en tiempo real
-- Subida de imágenes (Cloudinary)
+- Subida de imágenes (Cloudinary, perfil y grupales)
 - Vista de contactos o chats recientes
 - Diseño responsive y moderno (TailwindCSS)
 - Alerta de nuevos mensajes
 
 ---
 
-## 🖼️ Capturas de pantalla
-
+Guiado por: RoadsideCoder
