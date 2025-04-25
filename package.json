@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "server": "nodemon backend/server.js",
-    "build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+    "build": "npm install && npm install --prefix frontend && npm install @vitejs/plugin-react --prefix frontend && npm run build --prefix frontend"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
