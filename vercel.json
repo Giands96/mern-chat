@@ -1,5 +1,7 @@
 {
   "version": 2,
+  "buildCommand": "npm run build",
+  "installCommand": "npm install && cd frontend && npm install",
   "builds": [
     {
       "src": "backend/server.js",
@@ -8,7 +10,10 @@
     {
       "src": "frontend/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": {
+        "zeroConfig": true,
+        "distDir": "dist"
+      }
     }
   ],
   "routes": [
@@ -17,8 +22,12 @@
       "dest": "backend/server.js"
     },
     {
+      "src": "/socket.io/(.*)",
+      "dest": "backend/server.js"
+    },
+    {
       "src": "/(.*)",
-      "dest": "frontend/dist/$1"
+      "dest": "/frontend/dist/$1"
     }
   ]
 }
