@@ -26,6 +26,7 @@ const ProfileModal = ({ isOpen, onClose, user }) => {
   };
   */
 
+  const API_URL = import.meta.env.VITE_API_URL;
   const handleSave = async () => {
     if (!name.trim()) {
       alert("El nombre no puede estar vacío");
@@ -43,7 +44,7 @@ const ProfileModal = ({ isOpen, onClose, user }) => {
         const formData = new FormData();
         formData.append('image', imageFile);
         
-        const uploadResponse = await axios.post('/api/upload', formData, {
+        const uploadResponse = await axios.post(`${API_URL}/api/upload`, formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             'Authorization': `Bearer ${token}`
@@ -53,7 +54,7 @@ const ProfileModal = ({ isOpen, onClose, user }) => {
       }
 
       // Luego actualizar perfil
-      const updateResponse = await axios.post('/api/user/profile', { 
+      const updateResponse = await axios.post(`${API_URL}/api/user/profile`, { 
         name, 
         pic: picUrl 
       }, {

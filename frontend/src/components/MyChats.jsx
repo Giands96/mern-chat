@@ -10,6 +10,7 @@ export const MyChats = ({fetchAgain}) => {
   const [loggedUser, setLoggedUser] = useState();
   const { selectedChat, setSelectedChat, user, chats, setChats} = ChatState();
   const [openGroupChat, setOpenGroupChat] = useState(false);
+
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchChats = async () => {
@@ -21,8 +22,8 @@ export const MyChats = ({fetchAgain}) => {
           }
         };
 
+
         const { data } = await axios.get('/api/chat', config);
-        
         setChats(data);
         setIsLoading(false);
     } catch (error) {

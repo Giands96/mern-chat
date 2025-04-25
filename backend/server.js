@@ -15,18 +15,18 @@ const path = require('path');
 
 
 dotenv.config();
+console.log("NODE_ENV: ", process.env.NODE_ENV);
 connectDB()
 app.use(cors({
-    origin: ['http://localhost:5173'],
-
+    origin: ["https://mern-chat-qwl4.vercel.app"],
     credentials: true
   }));
 
 app.use(express.json()); // aceptar data JSON
 
-app.get('/',(req,res) => {
-    res.send("la API está ejecutandose satisfactoriamente");
-});
+// app.get('/',(req,res) => {
+//     res.send("la API está ejecutandose satisfactoriamente");
+// });
 
 app.use('/api/chat',chatRoutes);
 app.use('/api/user', userRoutes);
@@ -51,6 +51,7 @@ if(process.env.NODE_ENV === 'production'){
 //--------------------------Deployment--------------------------
 app.use(notFound);
 app.use(errorHandler);
+
 
 const PORT = process.env.PORT || 5000;
 
