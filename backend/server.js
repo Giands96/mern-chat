@@ -18,7 +18,7 @@ dotenv.config();
 console.log("NODE_ENV: ", process.env.NODE_ENV);
 connectDB()
 app.use(cors({
-    origin: ["https://mern-chat-qwl4.vercel.app"],
+    origin: ["https://mern-chat-2p49.onrender.com"],
     credentials: true
   }));
 
