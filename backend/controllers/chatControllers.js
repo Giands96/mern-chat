@@ -66,33 +66,37 @@ const createGroupChat = asyncHandler(async(req,res)=>{
         return res.status(400).send({message: "Por favor llene todos los campos"});
     }
 
-    let users;
+    let users = [];
     try {
-        
-        users = typeof req.body.users === 'string' 
-            ? JSON.parse(req.body.users) 
-            : req.body.users;
+        if (typeof req.body.users === 'string') {
+            users = JSON.parse(req.body.users);
+        } else if (Array.isArray(req.body.users)) {
+            users = req.body.users;
+        } else {
+            return res.status(400).send({message: "El formato de usuarios es inválido"});
+        }
     } catch (parseError) {
-        return res.status(400).send({message: "Invalid users format"});
+        console.error("Error al parsear usuarios:", parseError);
+        return res.status(400).send({message: "Invalid users format: " + parseError.message});
     }
 
-    
+    // Asegurarse de que users siempre sea un array
     if (!Array.isArray(users)) {
-        return res.status(400).send({message: "Users must be an array"});
+        return res.status(400).send({message: "Users debe ser un array"});
     }
 
     if(users.length < 2){
-        return res.status(400).send("Se requiere más de 2 personas para formar un chat grupal")
+        return res.status(400).send("Se requiere más de 2 personas para formar un chat grupal");
     }
 
+    // Convertir todos los IDs a string para comparación
+    const userIds = users.map(user => 
+        typeof user === 'string' ? user : (user._id ? user._id.toString() : user)
+    );
     
-    const userIds = new Set(users.map(user => 
-        typeof user === 'string' ? user : user._id.toString()
-    ));
-    
-    
-    if (!userIds.has(req.user._id.toString())) {
-        users.push(req.user);
+    // Asegurarse de que el creador esté en el grupo
+    if (!userIds.includes(req.user._id.toString())) {
+        users.push(req.user._id.toString());
     }
     
     try {
@@ -108,13 +112,13 @@ const createGroupChat = asyncHandler(async(req,res)=>{
         .populate("users", "-password")
         .populate("groupAdmin","-password");
 
-        res.status(200).json(fullGroupChat)
+        res.status(200).json(fullGroupChat);
     }
     catch(err){
         console.error("Group Chat Creation Error:", err);
         res.status(400).send({message: err.message});
     }
-})
+});
 
 
 const renameGroup = asyncHandler(async(req,res)=>{

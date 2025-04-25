@@ -73,8 +73,8 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
     }
 
     const handleSubmit = () => {
-      if (!groupChatName || !selectedUsers) {
-        alert("Please fill all the fields");
+      if (!groupChatName || !selectedUsers || selectedUsers.length < 2) {
+        alert("Por favor elija un nombre y añada al menos 2 usuarios");
         return;
       }
       const config = {
@@ -84,9 +84,12 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
         },
       };
       
+      // Extraer solo los IDs de los usuarios
+      const userIds = selectedUsers.map(u => u._id);
+      
       axios.post('/api/chat/group', {
         name: groupChatName,
-        users: JSON.stringify(selectedUsers.map((u) => u._id)),
+        users: JSON.stringify(userIds),
         pic: groupPic || "/groupchat.webp", // Usar imagen predeterminada si no se sube una
       }, config).then((res) => {
         setChats([res.data, ...chats]);
@@ -95,8 +98,8 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
         toggleModal();
         
       }).catch((error) => {
-        alert('Error creating group chat');
-        console.error(error);
+        console.error("Error detallado:", error.response?.data || error.message);
+        alert('Error al crear el chat grupal: ' + (error.response?.data?.message || error.message));
       });
     }
 

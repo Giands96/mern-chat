@@ -63,7 +63,9 @@ const server = app.listen(PORT, console.log(`Servidor iniciado en el puerto ${PO
 const io = require('socket.io')(server,{
     pingTimeout: 60000,    
     cors:{
-        origin: ['http://localhost:5173'],
+        origin: process.env.NODE_ENV === 'production' 
+            ? '*' 
+            : ['http://localhost:5173', 'https://mern-chat-2p49.onrender.com'],
         credentials: true
     },
 })

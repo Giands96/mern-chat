@@ -8,7 +8,7 @@ import axios from "axios";
 import io from "socket.io-client";
 import EmojiPicker from "emoji-picker-react";
 
-const ENDPOINT = 'http://localhost:5000';
+const ENDPOINT = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
 var socket, selectedChatCompare = null;
 
 
@@ -166,12 +166,42 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   }
 
   useEffect(() => {
-    socket = io(ENDPOINT);
+    if (!user) return;
+    
+    // Usar la URL actual para conexión al socket
+    const socketUrl = window.location.hostname === 'localhost' 
+      ? 'http://localhost:5000'
+      : window.location.origin;
+      
+    socket = io(socketUrl);
     socket.emit('setup', user);
     socket.on('connected', () => setSocketConnected(true));
     socket.on('typing',()=> setIsTyping(true));
     socket.on('stop typing',()=> setIsTyping(false));
-  }, []);
+    
+    // Escuchar mensajes recibidos
+    socket.on('message recieved', (newMessageReceived) => {
+      if (!selectedChatCompare || selectedChatCompare._id !== newMessageReceived.chat._id) {
+        // Manejar notificaciones
+        if (!notification.includes(newMessageReceived)) {
+          setNotification([newMessageReceived, ...notification]);
+          if (setFetchAgain) setFetchAgain(!fetchAgain);
+        }
+      } else {
+        setMessages([...messages, newMessageReceived]);
+      }
+    });
+    
+    // Limpieza al desmontar
+    return () => {
+      if (socket) {
+        socket.off('connected');
+        socket.off('typing');
+        socket.off('stop typing');
+        socket.off('message recieved');
+      }
+    };
+  }, [user]);
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChat) return;
@@ -216,41 +246,6 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   }, [selectedChat]);
 
   
-
-  useEffect(() => {
-    socket.on('message recieved', (newMessageReceived)=> {
-      if(!selectedChatCompare || selectedChatCompare._id != newMessageReceived.chat._id) {
-        // Verificar que el mensaje no exista ya en las notificaciones
-        // comparando por el ID del mensaje
-        if(!notification.some(n => n._id === newMessageReceived._id)) {
-          // Actualizar notificaciones sin duplicados
-          setNotification([newMessageReceived, ...notification]);
-          setFetchAgain(!fetchAgain);
-          
-          // Actualizar la lista de chats para asegurar que el nuevo grupo aparezca
-          if (newMessageReceived.chat.isGroupChat) {
-            const { chats, setChats } = ChatState();
-            if (!chats.find(c => c._id === newMessageReceived.chat._id)) {
-              setChats([newMessageReceived.chat, ...chats]);
-            }
-          }
-        }
-      } else {
-        setMessages([...messages, newMessageReceived]);
-      }
-    });
-    
-    // Limpiar el evento al desmontar
-    return () => {
-      socket.off('message recieved');
-    };
-  }, [selectedChatCompare, notification, messages]);  // Añadir dependencias al useEffect
-
-  
-  // Y luego otro useEffect separado solo para el scroll
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
 
   // Función para determinar si un mensaje es del usuario actual
   const isSelfMessage = (msg) => {
