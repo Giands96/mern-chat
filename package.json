@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node backend/server.js",
     "server": "nodemon backend/server.js",
-    "build": "npm install && cd frontend && npm install && npm run build"
+    "build": "echo 'Build handled by Vercel config'"
   },
   "dependencies": {
     "axios": "^1.8.4",
