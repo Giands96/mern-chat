@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useHistory } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { BellRing, Bolt, LogOut, Menu, Search, User } from "lucide-react";
 import { ChatState } from "../Context/ChatProvider";
 import ProfileModal from "./ProfileModal";
@@ -9,7 +9,7 @@ import { UserListItem } from "../UserAvatar/UserListItem";
 
 export const SideDrawer = () => {
   const [search, setSearch] = useState("");
-  const history = useHistory();
+  const history = useNavigate();
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
@@ -136,7 +136,7 @@ export const SideDrawer = () => {
       <div className="rounded-md items-center mx-2 md:mx-0">
         <button
           title="Search for users to chat"
-          className="bg-gray-100 items-center text-[0px] md:text-xl md:px-10 md:py-2 rounded-xl hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer "
+          className="bg-gray-100 items-center text-[0px] md:text-xl md:px-10 md:py-2 rounded-xl hover:bg-gray-200 flex md:gap-2 transition-all hover:cursor-pointer "
           onClick={toggleOpenSearch}
         >
           <Search className=" p-1" />

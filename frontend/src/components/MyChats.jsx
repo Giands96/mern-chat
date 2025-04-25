@@ -4,6 +4,7 @@ import axios from 'axios';
 import { ChatLoading } from './ChatLoading';
 import { GroupChatModal } from '../miscellaneous/GroupChatModal';
 import "../styles/loader.css"
+import { MessageCirclePlus } from 'lucide-react';
 
 export const MyChats = ({fetchAgain}) => {
   const [loggedUser, setLoggedUser] = useState();
@@ -50,8 +51,8 @@ export const MyChats = ({fetchAgain}) => {
         <div className='pt-5 px-5 text-2xl md:text-lg flex justify-between w-full'>
           <span className='text-3xl font-light'>My Chats</span>
           <div>
-            <button className='bg-gray-100 p-2 hover:bg-gray-200 flex gap-2 transition-all hover:cursor-pointer rounded-lg text-sm md:text-md' onClick={toggleGroupChat}>
-              New Group +
+          <button className='bg-indigo-600 p-3 right-2 hover:bg-indigo-400 relative top-[700px] text-white flex gap-2 transition-all hover:cursor-pointer rounded-full text-sm md:text-md' onClick={toggleGroupChat}>
+          <MessageCirclePlus />
             </button>
             
             {openGroupChat && (

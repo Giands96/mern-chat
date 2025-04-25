@@ -5,6 +5,11 @@ import { getSender, getSenderUser } from "../config/ChatLogics";
 import "../styles/loader.css";
 import { UpdateGroupChatModal } from "../miscellaneous/UpdateGroupChatModal";
 import axios from "axios";
+import io from "socket.io-client";
+
+const ENDPOINT = 'http://localhost:5000';
+var socket, selectedChatCompare = null;
+
 
 // Componente ChatInput memoizado para evitar re-renders innecesarios
 const ChatInput = memo(({ newMessage, setNewMessage, sendMessage }) => {
@@ -40,10 +45,15 @@ const ChatInput = memo(({ newMessage, setNewMessage, sendMessage }) => {
   );
 });
 
+
+
+
+
 export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
+  const [socketConnected, setSocketConnected] = useState(false);
   const messagesEndRef = useRef(null);
 
   const { user, selectedChat, setSelectedChat } = ChatState();
@@ -58,13 +68,10 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const sendMessage = async (event) => {
     if ((event.key === "Enter" || event.type === "click") && newMessage.trim()) {
       event.preventDefault();
-      
       // Guardar el mensaje que se está enviando
       const messageToSend = newMessage;
-      
       // Crear un ID temporal para el mensaje optimista
       const tempId = `temp-${Date.now()}`;
-      
       // Crear un mensaje optimista para la UI
       const optimisticMessage = {
         _id: tempId,
@@ -102,6 +109,8 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           config
         );
         
+        socket.emit('new message', data);
+
         // Reemplazar el mensaje optimista con el mensaje real del servidor
         setMessages(prevMessages => 
           prevMessages.map(msg => msg._id === tempId ? data : msg)
@@ -124,9 +133,18 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     }
   };
 
+  
+
+
   function handleProfileClick() {
     setOpenProfile(true);
   }
+
+  useEffect(() => {
+    socket = io(ENDPOINT);
+    socket.emit('setup', user);
+    socket.on('connected', () => setSocketConnected(true));
+  }, []);
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChat) return;
@@ -145,6 +163,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       );
       setMessages(data);
       setLoading(false);
+      socket.emit('join chat', selectedChat._id);
     } catch (error) {
       console.error("Error fetching messages:", error);
       setLoading(false);
@@ -162,13 +181,26 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   useEffect(() => {
     // Limpiar mensajes al cambiar de chat
     setMessages([]);
-    
+    selectedChatCompare = selectedChat;
     if (selectedChat) {
       fetchMessages();
     }
-    
     // El scroll automático se ejecutará después de que se actualicen los mensajes
   }, [selectedChat]);
+
+  useEffect(() => {
+    socket.on('message recieved', (newMessageReceived)=> {
+      if(!selectedChatCompare || selectedChatCompare._id != newMessageReceived.chat._id){
+        {
+          //give notification
+        }
+      } else {
+        setMessages([...messages, newMessageReceived]);
+      }
+      
+    })
+  })
+
   
   // Y luego otro useEffect separado solo para el scroll
   useEffect(() => {

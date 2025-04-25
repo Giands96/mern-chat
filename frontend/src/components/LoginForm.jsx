@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Eye, EyeOff, User, Mail, Lock, Image } from "lucide-react";
 import axios from "axios";
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ChatState } from "../Context/ChatProvider";
 
 export const LoginForm = () => {
@@ -16,7 +16,7 @@ export const LoginForm = () => {
     pic: "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg"
   });
 
-  const history = useHistory();
+  const history = useNavigate();
   const { setUser: setChatUser, setSelectedChat, setChats } = ChatState();
 
   const handleChangeForm = (e) => {
@@ -138,7 +138,7 @@ export const LoginForm = () => {
       localStorage.setItem("userInfo", JSON.stringify(response.data));
       setChatUser(response.data);
       
-      history.push("/chats");
+      history("/chats");
     } catch (error) {
       setError(error.response?.data?.message || "Ocurrió un error inesperado");
     } finally {

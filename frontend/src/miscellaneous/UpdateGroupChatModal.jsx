@@ -102,7 +102,8 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
     }
   };
 
-  const handleRename = async () => {
+  const handleRename = async (e) => {
+    e.preventDefault();
     if(!groupChatName) return
     try {
       setRenameLoading(true);
@@ -120,7 +121,7 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
       
       setSelectedChat(data);
       setRenameLoading(false);
-      setFetchAgain(!fetchAgain);
+      
       
     } catch (error) {
       alert('Error al renombrar el grupo');
@@ -178,12 +179,13 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
         </div>
 
             <form className="space-y-4 flex gap-2">
+              {/*Input para renombrar el grupo*/ }
               <input
                 type="text"
                 value={groupChatName}
                 onChange={(e) => setGroupChatName(e.target.value)}
                 placeholder="Nuevo nombre del grupo"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:border-cyan-500 focus:outline-none"
               />
               <button onClick={handleRename} className='bg-purple-800 hover:bg-purple-950 transition-colors text-white cursor-pointer py-2 rounded-lg h-fit px-2' >Update</button>
 
@@ -198,7 +200,7 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
                 value={search}
                 onChange={(e) => handleSearch(e.target.value)}
                 placeholder="Buscar usuarios"
-                className="w-full p-2 border border-gray-300 rounded-md"
+                className="w-full p-2 border border-gray-300 rounded-md focus:border-cyan-500 focus:outline-none"
               />
 
 
