@@ -59,13 +59,16 @@ io.on('connection',(socket) => {
     })
     socket.on('join chat',(room) => {
         socket.join(room);
-        console.log('Un usuario se ha unido a la sala: '+ room);
+        console.log('Un usuario se ha unido a la sala: '+ room); 
+
     })
     socket.on('typing',(room) => socket.in(room).emit('typing'));
     socket.on('stop typing',(room) => socket.in(room).emit('stop typing'));
     socket.on('disconnect',() => {
         console.log('Un usuario se ha desconectado');
     })
+
+    
 
     socket.on('new message',(newMessageRecieved)=>{
         var chat = newMessageRecieved.chat;
