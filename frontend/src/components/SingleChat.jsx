@@ -1,18 +1,19 @@
 import React, { useEffect, useState, useRef, memo, useCallback } from "react";
 import { ChatState } from "../Context/ChatProvider";
-import { ArrowLeftFromLine, EllipsisVertical, Send } from "lucide-react";
+import { ArrowLeftFromLine, EllipsisVertical, Send, Smile } from "lucide-react";
 import { getSender, getSenderUser } from "../config/ChatLogics";
 import "../styles/loader.css";
 import { UpdateGroupChatModal } from "../miscellaneous/UpdateGroupChatModal";
 import axios from "axios";
 import io from "socket.io-client";
+import EmojiPicker from "emoji-picker-react";
 
 const ENDPOINT = 'http://localhost:5000';
 var socket, selectedChatCompare = null;
 
 
 // Componente ChatInput memoizado para evitar re-renders innecesarios
-const ChatInput = memo(({ newMessage, setNewMessage, sendMessage }) => {
+const ChatInput = memo(({ newMessage, setNewMessage, sendMessage, typingHandler }) => {
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {
       sendMessage(e);
@@ -25,7 +26,7 @@ const ChatInput = memo(({ newMessage, setNewMessage, sendMessage }) => {
         type="text"
         className="bg-white w-full p-2 rounded-l border border-gray-300"
         placeholder="Start with a message"
-        onChange={(e) => setNewMessage(e.target.value)}
+        onChange={(e) => { setNewMessage(e.target.value); typingHandler(); }}
         onKeyDown={handleKeyDown}
         value={newMessage}
       />
@@ -54,9 +55,16 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [socketConnected, setSocketConnected] = useState(false);
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const handleEmojiClick = (emojiObject) => {
+  
+    setNewMessage(prev => prev + emojiObject.emoji);
+  };
 
-  const { user, selectedChat, setSelectedChat } = ChatState();
+  const { user, selectedChat, setSelectedChat, notification, setNotification } = ChatState();
   const [openProfile, setOpenProfile] = useState(false);
 
   // Función para hacer scroll automático al fondo del chat
@@ -67,6 +75,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
  
   const sendMessage = async (event) => {
     if ((event.key === "Enter" || event.type === "click") && newMessage.trim()) {
+      socket.emit('stop typing', selectedChat._id);
       event.preventDefault();
       // Guardar el mensaje que se está enviando
       const messageToSend = newMessage;
@@ -134,7 +143,23 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   };
 
   
-
+  const typingHandler = () => {
+    if(!socketConnected) return;
+    if(!typing){
+      setTyping(true);
+      socket.emit('typing', selectedChat._id);
+    }
+    let lastTypingTime = new Date().getTime();
+    var timerLength = 3000;
+    setTimeout(()=>{
+      var timeNow = new Date().getTime();
+      var timeDiff = timeNow - lastTypingTime;
+      if(timeDiff >= timerLength && isTyping){
+        socket.emit('stop typing', selectedChat._id);
+        setTyping(false);
+      }
+    },timerLength);
+  }
 
   function handleProfileClick() {
     setOpenProfile(true);
@@ -144,6 +169,8 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     socket = io(ENDPOINT);
     socket.emit('setup', user);
     socket.on('connected', () => setSocketConnected(true));
+    socket.on('typing',()=> setIsTyping(true));
+    socket.on('stop typing',()=> setIsTyping(false));
   }, []);
 
   const fetchMessages = useCallback(async () => {
@@ -188,18 +215,36 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     // El scroll automático se ejecutará después de que se actualicen los mensajes
   }, [selectedChat]);
 
+  
+
   useEffect(() => {
     socket.on('message recieved', (newMessageReceived)=> {
-      if(!selectedChatCompare || selectedChatCompare._id != newMessageReceived.chat._id){
-        {
-          //give notification
+      if(!selectedChatCompare || selectedChatCompare._id != newMessageReceived.chat._id) {
+        // Verificar que el mensaje no exista ya en las notificaciones
+        // comparando por el ID del mensaje
+        if(!notification.some(n => n._id === newMessageReceived._id)) {
+          // Actualizar notificaciones sin duplicados
+          setNotification([newMessageReceived, ...notification]);
+          setFetchAgain(!fetchAgain);
+          
+          // Actualizar la lista de chats para asegurar que el nuevo grupo aparezca
+          if (newMessageReceived.chat.isGroupChat) {
+            const { chats, setChats } = ChatState();
+            if (!chats.find(c => c._id === newMessageReceived.chat._id)) {
+              setChats([newMessageReceived.chat, ...chats]);
+            }
+          }
         }
       } else {
         setMessages([...messages, newMessageReceived]);
       }
-      
-    })
-  })
+    });
+    
+    // Limpiar el evento al desmontar
+    return () => {
+      socket.off('message recieved');
+    };
+  }, [selectedChatCompare, notification, messages]);  // Añadir dependencias al useEffect
 
   
   // Y luego otro useEffect separado solo para el scroll
@@ -345,8 +390,8 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   <div className="flex items-center gap-2">
                     <img
                       className="w-8 h-8 rounded-full"
-                      src="/groupchat.webp"
-                      alt=""
+                      src={selectedChat.pic || "/groupchat.webp"}
+                      alt="Group chat"
                     />
                     <span className="text-xl font-light">
                       {selectedChat.chatName}
@@ -389,13 +434,40 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                   </div>
                 )}
               </div>
-
+                {isTyping?<div className="text-neutral-400 text-sm animate-pulse">Typing...</div>:<></>}
               {/* Input de mensaje usando el componente ChatInput */}
+              <div className="flex items-center gap-2 w-full">
+              <div className="relative">
+          <button
+            type="button"
+            className="p-2 rounded hover:bg-gray-200 transition-colors"
+            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+          >
+            <Smile size={20} />
+          </button>
+          
+          {showEmojiPicker && (
+            <div className="absolute bottom-12 left-0 z-10" style={{ zIndex: 1000 }}>
+              <EmojiPicker
+                onEmojiClick={handleEmojiClick}
+                theme="light"
+                lazyLoadEmojis={true}
+                searchDisabled={false}
+                previewConfig={{ showPreview: false }}
+              />
+            </div>
+          )}
+        </div>
+        <div className="w-full">
               <ChatInput 
                 newMessage={newMessage}
                 setNewMessage={setNewMessage}
                 sendMessage={sendMessage}
+                typingHandler={typingHandler}
               />
+              </div>
+              </div>
+              
             </div>
           </div>
         </div>

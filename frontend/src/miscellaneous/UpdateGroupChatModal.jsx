@@ -12,7 +12,8 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
   const [search, setSearch] = useState('');
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [renameLoading, setRenameLoading] = useState(false);
+  const [groupPic, setGroupPic] = useState('');
+  const [picLoading, setPicLoading] = useState(false);
 
   
 
@@ -27,11 +28,21 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
     const updateFetchAgain = setFetchAgain;
     const currentFetchAgain = fetchAgain;
     
+    // Lógica corregida:
+    // 1. El administrador puede eliminar a cualquiera
+    // 2. Cualquier usuario puede eliminarse a sí mismo
+    // 3. Los usuarios normales NO pueden eliminar a otros
     if(selectedChat.groupAdmin._id !== user._id && user1._id !== user._id){
-      alert('Only admins can remove users');
+      alert('Solo los administradores pueden eliminar a otros usuarios');
       return;
     }
   
+    // Si el usuario intenta eliminar al administrador y no es el administrador
+    if(user1._id === selectedChat.groupAdmin._id && user._id !== selectedChat.groupAdmin._id) {
+      alert('No puedes eliminar al administrador del grupo');
+      return;
+    }
+    
     try {
       setLoading(true);
       const config = {
@@ -106,7 +117,7 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
     e.preventDefault();
     if(!groupChatName) return
     try {
-      setRenameLoading(true);
+      setLoading(true);
       const config = {
         headers: {
           'Content-type': 'application/json',
@@ -120,13 +131,13 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
       }, config);
       
       setSelectedChat(data);
-      setRenameLoading(false);
+      setLoading(false);
       
       
     } catch (error) {
       alert('Error al renombrar el grupo');
       console.error(error); 
-      setRenameLoading(false);
+      setLoading(false);
       setGroupChatName('');
     }
   };
@@ -156,6 +167,68 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
     }
   }
 
+  // Función para manejar la subida de imagen
+  const postDetails = (pics) => {
+    setPicLoading(true);
+    if (pics === undefined) {
+      alert("Please select an image");
+      setPicLoading(false);
+      return;
+    }
+    
+    if (pics.type === "image/jpeg" || pics.type === "image/png") {
+      const data = new FormData();
+      data.append("file", pics);
+      data.append("upload_preset", "chat-app");
+      data.append("cloud_name", "mern-chat-app");
+      
+      fetch("https://api.cloudinary.com/v1_1/mern-chat-app/image/upload", {
+        method: "post",
+        body: data,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          setGroupPic(data.url.toString());
+          setPicLoading(false);
+        })
+        .catch((err) => {
+          console.log(err);
+          setPicLoading(false);
+        });
+    } else {
+      alert("Please select an image");
+      setPicLoading(false);
+    }
+  };
+
+  // Función para actualizar la imagen del grupo
+  const handleUpdateGroupPic = async () => {
+    if (!groupPic) return;
+    
+    try {
+      setLoading(true);
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        }
+      };
+    
+      const { data } = await axios.put('/api/chat/updatepic', {
+        chatId: selectedChat._id,
+        pic: groupPic,
+      }, config);
+      
+      setSelectedChat(data);
+      setFetchAgain(!fetchAgain);
+      setLoading(false);
+    } catch (error) {
+      alert('Error al actualizar la imagen del grupo');
+      console.error(error); 
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <button
@@ -177,6 +250,33 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
             ✕
           </button>
         </div>
+
+            {/* Previsualización y actualización de la imagen del grupo */}
+            <div className="flex flex-col items-center mb-4">
+              <img 
+                src={selectedChat.pic || "/groupchat.webp"} 
+                alt="Group avatar" 
+                className="w-20 h-20 rounded-full object-cover mb-2"
+              />
+              <div className="flex flex-col items-center">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => postDetails(e.target.files[0])}
+                  className="mb-2"
+                />
+                {picLoading ? (
+                  <p className="text-blue-500 text-sm">Cargando imagen...</p>
+                ) : groupPic ? (
+                  <button 
+                    onClick={handleUpdateGroupPic}
+                    className="bg-green-500 text-white px-2 py-1 rounded-md text-sm"
+                  >
+                    Actualizar imagen
+                  </button>
+                ) : null}
+              </div>
+            </div>
 
             <form className="space-y-4 flex gap-2">
               {/*Input para renombrar el grupo*/ }
@@ -209,9 +309,12 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
                 <h3 className="text-lg font-medium mt-2">Members</h3>
                 <div className="flex flex-wrap gap-1 mb-2">
                     {selectedChat.users.map((u) => (
-                        <UserBadgeItem key={u._id} user={u} handleFunction={() => handleRemove(u)} />
-
-                      
+                        <UserBadgeItem 
+                          key={u._id} 
+                          user={u} 
+                          handleFunction={() => handleRemove(u)} 
+                          isAdmin={selectedChat.groupAdmin._id === u._id}
+                        />
                     ))}
                   </div>
                 <div className="max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
@@ -221,7 +324,12 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
                     <p className="text-center text-gray-500">Cargando...</p>
                   ) : (
                     searchResult.slice(0, 4).map((user) => (
-                      <UserListItem key={user._id} user={user} handleFunction={() => handleAddUser(user)} />
+                      <UserListItem 
+                        key={user._id} 
+                        user={user} 
+                        handleFunction={() => handleAddUser(user)}
+                        isAdmin={selectedChat?.groupAdmin?._id === user._id}
+                      />
                     ))
                   )}
                 </div>

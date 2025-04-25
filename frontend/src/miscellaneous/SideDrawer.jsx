@@ -6,6 +6,8 @@ import ProfileModal from "./ProfileModal";
 import axios from "axios";
 import { ChatLoading } from "../components/ChatLoading";
 import { UserListItem } from "../UserAvatar/UserListItem";
+import "../styles/notification.css";
+import { getSender } from "../config/ChatLogics";
 
 export const SideDrawer = () => {
   const [search, setSearch] = useState("");
@@ -13,12 +15,17 @@ export const SideDrawer = () => {
   const [searchResult, setSearchResult] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingChat, setLoadingChat] = useState(false);
-  const { user, setSelectedChat, chats, setChats, logout } = ChatState();
+  const { user, setSelectedChat, chats, setChats, logout, notification, setNotification } = ChatState();
   const [isOpenDropdown, setIsOpenDropdown] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   // const [notifications, setNotifications] = useState([]);
+
+  const handleNotificationClick = () => {
+    setIsNotificationOpen(!isNotificationOpen);
+  }
 
   const logoutHandler = () => {
     logout();
@@ -145,14 +152,87 @@ export const SideDrawer = () => {
       </div>
 
       <div id="menu" className="flex items-center gap-2">
+      {/* Botón de notificaciones con contador */}
+{/* Botón de notificaciones con contador */}
+<div className="relative">
+  <button
+    title="Notifications"
+    className="hover:cursor-pointer hover:bg-gray-200 p-2 transition-colors rounded-full"
+    onClick={handleNotificationClick}
+  >
+    <BellRing />
+    {notification.length > 0 && (
+      <div className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+        {notification.length > 9 ? "9+" : notification.length}
+      </div>
+    )}
+  </button>
+  
+  <div 
+    className={`absolute right-0 top-12 p-5 w-64 bg-white rounded-lg shadow-lg transition-all duration-300 transform ${
+      isNotificationOpen 
+        ? "opacity-100 translate-y-0 pointer-events-auto" 
+        : "opacity-0 -translate-y-2 pointer-events-none"
+    }`}
+  >
+    {!notification.length && (
+      <div className="text-center py-4">
+        <span>No Notifications</span>
+      </div>
+    )}
+    
+    {/* Mostrar solo las primeras 3 notificaciones */}
+    {notification.slice(0, 3).map(notif => (
+      <button
+        key={notif._id}
+        className="w-full py-2 border-b border-gray-100 flex items-center gap-2 text-left hover:bg-gray-50 transition-colors px-2 rounded-md"
+        onClick={() => {
+          setSelectedChat(notif.chat);
+          setNotification(notification.filter((n) => n !== notif));
+          setIsNotificationOpen(false);
+          history("/chats");
+        }}
+      >
+        <img 
+          src={notif.chat.isGroupChat 
+            ? notif.chat.pic || "/path/to/default/group-icon.png" 
+            : notif.sender?.pic || "/path/to/default/user-icon.png"} 
+          className="w-6 h-6 rounded-full object-cover" 
+          alt="profile" 
+        />
         <div>
-          <button
-            title="Notifications"
-            className="hover:cursor-pointer hover:bg-gray-200 p-2 transition-colors rounded-full"
-          >
-            <BellRing />
-          </button>
+          {notif.chat.isGroupChat
+            ? <span>New Message in <strong>{notif.chat.chatName}</strong></span>
+            : <span>New Message from <strong>{getSender(user, notif.chat.users)}</strong></span>
+          }
         </div>
+      </button>
+    ))}
+    
+    {/* Mostrar un mensaje indicando que hay más notificaciones */}
+    {notification.length > 3 && (
+      <div className="text-center py-2 text-gray-500 border-t border-gray-100 mt-1">
+        <span>{notification.length - 3} more notification{notification.length - 3 > 1 ? 's' : ''}</span>
+      </div>
+    )}
+    
+    {/* Botón para ver todas las notificaciones */}
+    {notification.length > 3 && (
+      <button 
+        className="w-full mt-2 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+        onClick={() => {
+          // Aquí podrías navegar a una vista de todas las notificaciones
+          setIsNotificationOpen(false);
+          history("/notifications");
+          // O simplemente marcar todas como vistas:
+          // setNotification([]);
+        }}
+      >
+        View all notifications
+      </button>
+    )}
+  </div>
+</div>
         <div>
           <button
             onClick={toggleDropdown}

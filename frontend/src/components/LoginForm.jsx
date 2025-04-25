@@ -120,7 +120,7 @@ export const LoginForm = () => {
           email: user.email,
           password: user.password
         }, config);
-        console.log(response.data);
+        
       } else {
         response = await axios.post("/api/user", {
           name: user.name,

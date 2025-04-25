@@ -22,7 +22,7 @@ export const MyChats = ({fetchAgain}) => {
         };
 
         const { data } = await axios.get('/api/chat', config);
-        console.log(data);
+        
         setChats(data);
         setIsLoading(false);
     } catch (error) {
@@ -78,10 +78,12 @@ export const MyChats = ({fetchAgain}) => {
                   onClick={() => setSelectedChat(chat)}
                 >
                   <img 
-                    src={chat.isGroupChat ? "../../public/groupchat.webp" : chat.users[0]._id === loggedUser._id ? chat.users[1].pic : chat.users[0].pic} 
-                    alt="" 
-                    className='w-[40px] h-[40px] rounded-full'
-                  />
+  src={chat.isGroupChat 
+    ? (chat.pic || "/groupchat.webp") 
+    : (chat.users[0]._id === loggedUser._id ? chat.users[1].pic : chat.users[0].pic)} 
+  alt="" 
+  className='w-[40px] h-[40px] rounded-full'
+/>
                   <span className='font-semibold'>
                     {chat.isGroupChat ? chat.chatName : chat.users[0]._id === loggedUser._id ? chat.users[1].name : chat.users[0].name}
                   </span>

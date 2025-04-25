@@ -10,7 +10,42 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
     const [search, setSearch] = useState("");
     const [searchResult, setSearchResult] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [groupPic, setGroupPic] = useState("");
+    const [picLoading, setPicLoading] = useState(false);
     
+    // Función para manejar la subida de imagen
+    const postDetails = (pics) => {
+      setPicLoading(true);
+      if (pics === undefined) {
+        alert("Please select an image");
+        setPicLoading(false);
+        return;
+      }
+      
+      if (pics.type === "image/jpeg" || pics.type === "image/png") {
+        const data = new FormData();
+        data.append("file", pics);
+        data.append("upload_preset", "chat-app");
+        data.append("cloud_name", "mern-chat-app");
+        
+        fetch("https://api.cloudinary.com/v1_1/mern-chat-app/image/upload", {
+          method: "post",
+          body: data,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            setGroupPic(data.url.toString());
+            setPicLoading(false);
+          })
+          .catch((err) => {
+            console.log(err);
+            setPicLoading(false);
+          });
+      } else {
+        alert("Please select an image");
+        setPicLoading(false);
+      }
+    };
 
     const handleSearch = async (query) => {
         setSearch(query);
@@ -28,7 +63,7 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
             };
             
             const { data } = await axios.get(`/api/user?search=${search}`, config);
-            //console.log(data)
+            
             setLoading(false);
             setSearchResult(data);
         } catch (error) {
@@ -52,6 +87,7 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
       axios.post('/api/chat/group', {
         name: groupChatName,
         users: JSON.stringify(selectedUsers.map((u) => u._id)),
+        pic: groupPic || "/groupchat.webp", // Usar imagen predeterminada si no se sube una
       }, config).then((res) => {
         setChats([res.data, ...chats]);
         
@@ -70,7 +106,7 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
      
     const handleGroup = (userToAdd) => {
         if (!userToAdd){
-            console.log("No user to add")
+            alert("No user to add")
             return;
         }
         if (selectedUsers.some(user => user._id === userToAdd._id)) {
@@ -111,6 +147,22 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
             onChange={(e) => setGroupChatName(e.target.value)} 
           />
 
+          {/* Input para la imagen del grupo */}
+          <label className='text-xs md:text-sm mb-1' htmlFor="grouppic">Group Image</label>
+          <input
+            className="bg-white text-sm md:text-base p-2 w-full border border-gray-300 focus:border-cyan-500 focus:outline-none rounded-lg mb-3"
+            type="file"
+            accept="image/*"
+            name='grouppic'
+            onChange={(e) => postDetails(e.target.files[0])}
+          />
+          {picLoading && <p className="text-sm text-blue-500 mb-2">Cargando imagen...</p>}
+          {groupPic && (
+            <div className="mb-3 flex justify-center">
+              <img src={groupPic} alt="Group preview" className="h-36 w-36 rounded-full object-cover" />
+            </div>
+          )}
+
           {/* Input de búsqueda */}
           <label className='text-xs md:text-sm mb-1' htmlFor="username">Username</label>
           <input 
@@ -126,7 +178,11 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
           <div className="max-h-40 md:max-h-60 overflow-y-auto rounded-lg border border-gray-300 p-2">
             <div className="flex flex-wrap gap-1 mb-2">
               {selectedUsers.map((u) => (
-                <UserBadgeItem key={u._id} user={u} handleFunction={() => handleDelete(u)} />
+                <UserBadgeItem 
+                  key={u._id} 
+                  user={u} 
+                  handleFunction={() => handleDelete(u)} 
+                />
               ))}
             </div>
 
@@ -134,7 +190,11 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
               <p className="text-center py-2 text-gray-500">Loading...</p>
             ) : (
               searchResult?.slice(0, 4).map((user) => (
-                <UserListItem key={user._id} user={user} handleFunction={() => handleGroup(user)} />
+                <UserListItem 
+                  key={user._id} 
+                  user={user} 
+                  handleFunction={() => handleGroup(user)} 
+                />
               ))
             )}
           </div>
