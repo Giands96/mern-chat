@@ -15,6 +15,7 @@ const path = require('path');
 
 
 dotenv.config();
+console.log("NODE_ENV: ", process.env.NODE_ENV);
 connectDB()
 app.use(cors({
     origin: ["https://mern-chat-qwl4.vercel.app"],
@@ -23,9 +24,9 @@ app.use(cors({
 
 app.use(express.json()); // aceptar data JSON
 
-app.get('/',(req,res) => {
-    res.send("la API está ejecutandose satisfactoriamente");
-});
+// app.get('/',(req,res) => {
+//     res.send("la API está ejecutandose satisfactoriamente");
+// });
 
 app.use('/api/chat',chatRoutes);
 app.use('/api/user', userRoutes);
