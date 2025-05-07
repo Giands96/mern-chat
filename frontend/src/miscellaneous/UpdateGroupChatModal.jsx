@@ -205,6 +205,10 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
   const handleUpdateGroupPic = async () => {
     if (!groupPic) return;
     
+    // Guardar referencia local a la función
+    const updateFetchAgain = setFetchAgain;
+    const currentFetchAgain = fetchAgain;
+    
     try {
       setLoading(true);
       const config = {
@@ -220,7 +224,10 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
       }, config);
       
       setSelectedChat(data);
-      setFetchAgain(!fetchAgain);
+      // Usar la referencia local
+      if (typeof updateFetchAgain === 'function') {
+        updateFetchAgain(!currentFetchAgain);
+      }
       setLoading(false);
     } catch (error) {
       alert('Error al actualizar la imagen del grupo');
@@ -256,7 +263,7 @@ export const UpdateGroupChatModal = ({ fetchAgain, setFetchAgain, fetchMessages 
               <img 
                 src={selectedChat.pic || "/groupchat.webp"} 
                 alt="Group avatar" 
-                className="w-20 h-20 rounded-full object-cover mb-2"
+                className="w-20 h-20 rounded-full object-cover mb-2 object-contain md:object-cover"
               />
               <div className="flex flex-col items-center">
                 <input

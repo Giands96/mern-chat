@@ -83,7 +83,7 @@ export const MyChats = ({fetchAgain}) => {
     ? (chat.pic || "/groupchat.webp") 
     : (chat.users[0]._id === loggedUser._id ? chat.users[1].pic : chat.users[0].pic)} 
   alt="" 
-  className='w-[40px] h-[40px] rounded-full'
+  className='w-[40px] h-[40px] rounded-full object-contain md:object-cover'
 />
                   <span className='font-semibold'>
                     {chat.isGroupChat ? chat.chatName : chat.users[0]._id === loggedUser._id ? chat.users[1].name : chat.users[0].name}

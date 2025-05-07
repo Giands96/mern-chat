@@ -103,7 +103,7 @@ const ProfileModal = ({ isOpen, onClose, user }) => {
               <img 
                 src={profileImage} 
                 alt="Profile" 
-                className="w-32 h-32 rounded-full object-cover"
+                className="w-32 h-32 rounded-full object-contain md:object-cover"
               />
              {/* <label 
                 htmlFor="profile-upload"

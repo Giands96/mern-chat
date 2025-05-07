@@ -162,7 +162,7 @@ export const GroupChatModal = ({isOpen,toggleModal }) => {
           {picLoading && <p className="text-sm text-blue-500 mb-2">Cargando imagen...</p>}
           {groupPic && (
             <div className="mb-3 flex justify-center">
-              <img src={groupPic} alt="Group preview" className="h-36 w-36 rounded-full object-cover" />
+              <img src={groupPic} alt="Group preview" className="h-36 w-36 rounded-full object-contain md:object-cover" />
             </div>
           )}
 

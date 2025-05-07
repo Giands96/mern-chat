@@ -200,7 +200,7 @@ export const SideDrawer = () => {
           src={notif.chat.isGroupChat 
             ? notif.chat.pic || "/path/to/default/group-icon.png" 
             : notif.sender?.pic || "/path/to/default/user-icon.png"} 
-          className="w-6 h-6 rounded-full object-cover" 
+          className="w-6 h-6 rounded-full object-contain md:object-cover" 
           alt="profile" 
         />
         <div>
@@ -243,7 +243,7 @@ export const SideDrawer = () => {
           >
             <img
               src={user.pic}
-              className="w-8 h-8 bg-cover rounded-full"
+              className="w-8 h-8 bg-cover rounded-full object-contain md:object-cover"
               alt={user.name}
             />
             <span>{user.name}</span>

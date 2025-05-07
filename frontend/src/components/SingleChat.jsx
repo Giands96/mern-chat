@@ -267,7 +267,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             <img 
               src={msg.sender.pic} 
               alt="sender" 
-              className="w-8 h-8 rounded-full"
+              className="w-8 h-8 rounded-full object-contain md:object-cover"
             />
           </div>
         )}
@@ -304,7 +304,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                       <>
                         <img
                           src={selectedChat.users[1].pic}
-                          className="w-8 h-8 rounded-full"
+                          className="w-8 h-8 rounded-full object-contain md:object-cover"
                           alt="User Avatar"
                         />
                         <span className="text-xl font-light">

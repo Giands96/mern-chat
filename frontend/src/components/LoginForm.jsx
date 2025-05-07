@@ -288,7 +288,7 @@ export const LoginForm = () => {
                   <img 
                     src={user.pic} 
                     alt="Perfil" 
-                    className="w-32 h-32 object-cover rounded-full border-2 border-gray-300"
+                    className="w-32 h-32 rounded-full border-2 border-gray-300 object-contain md:object-cover"
                   />
                 </div>
               )}
