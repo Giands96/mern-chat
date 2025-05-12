@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useRef, memo, useCallback } from "react";
 import { ChatState } from "../Context/ChatProvider";
-import { ArrowLeftFromLine, EllipsisVertical, Send, Smile } from "lucide-react";
+import {
+  ArrowLeftFromLine,
+  EllipsisVertical,
+  Image,
+  Send,
+  Smile,
+} from "lucide-react";
 import { getSender, getSenderUser } from "../config/ChatLogics";
 import "../styles/loader.css";
 import { UpdateGroupChatModal } from "../miscellaneous/UpdateGroupChatModal";
@@ -8,47 +14,49 @@ import axios from "axios";
 import io from "socket.io-client";
 import EmojiPicker from "emoji-picker-react";
 
-const ENDPOINT = window.location.hostname === 'localhost' ? 'http://localhost:5000' : '';
-var socket, selectedChatCompare = null;
-
+const ENDPOINT =
+  window.location.hostname === "localhost" ? "http://localhost:5000" : "";
+var socket,
+  selectedChatCompare = null;
 
 // Componente ChatInput memoizado para evitar re-renders innecesarios
-const ChatInput = memo(({ newMessage, setNewMessage, sendMessage, typingHandler }) => {
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      sendMessage(e);
-    }
-  };
+const ChatInput = memo(
+  ({ newMessage, setNewMessage, sendMessage, typingHandler }) => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Enter") {
+        sendMessage(e);
+      }
+    };
 
-  return (
-    <form className="flex items-center gap-2 mt-2">
-      <input
-        type="text"
-        className="bg-white w-full p-2 rounded-l border border-gray-300"
-        placeholder="Start with a message"
-        onChange={(e) => { setNewMessage(e.target.value); typingHandler(); }}
-        onKeyDown={handleKeyDown}
-        value={newMessage}
-      />
-      <button
-        type="button"
-        onClick={sendMessage}
-        disabled={!newMessage.trim()}
-        className={`p-2 rounded-r ${
-          newMessage.trim() 
-            ? 'bg-blue-500 text-white hover:bg-blue-600' 
-            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-        } transition-colors`}
-      >
-        <Send size={20} />
-      </button>
-    </form>
-  );
-});
-
-
-
-
+    return (
+      <form className="flex items-center gap-2 mt-2">
+        <input
+          type="text"
+          className="bg-white w-full p-2 rounded-l border border-gray-300"
+          placeholder="Start with a message"
+          onChange={(e) => {
+            setNewMessage(e.target.value);
+            typingHandler();
+          }}
+          onKeyDown={handleKeyDown}
+          value={newMessage}
+        />
+        <button
+          type="button"
+          onClick={sendMessage}
+          disabled={!newMessage.trim()}
+          className={`p-2 rounded-r ${
+            newMessage.trim()
+              ? "bg-blue-500 text-white hover:bg-blue-600"
+              : "bg-gray-300 text-gray-500 cursor-not-allowed"
+          } transition-colors`}
+        >
+          <Send size={20} />
+        </button>
+      </form>
+    );
+  }
+);
 
 export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const [messages, setMessages] = useState([]);
@@ -60,11 +68,13 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const messagesEndRef = useRef(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const handleEmojiClick = (emojiObject) => {
-  
-    setNewMessage(prev => prev + emojiObject.emoji);
+    setNewMessage((prev) => prev + emojiObject.emoji);
   };
 
-  const { user, selectedChat, setSelectedChat, notification, setNotification } = ChatState();
+  const fileInputRef = useRef(null);
+
+  const { user, selectedChat, setSelectedChat, notification, setNotification } =
+    ChatState();
   const [openProfile, setOpenProfile] = useState(false);
 
   // Función para hacer scroll automático al fondo del chat
@@ -72,10 +82,12 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
- 
   const sendMessage = async (event) => {
-    if ((event.key === "Enter" || event.type === "click") && newMessage.trim()) {
-      socket.emit('stop typing', selectedChat._id);
+    if (
+      (event.key === "Enter" || event.type === "click") &&
+      newMessage.trim()
+    ) {
+      socket.emit("stop typing", selectedChat._id);
       event.preventDefault();
       // Guardar el mensaje que se está enviando
       const messageToSend = newMessage;
@@ -88,18 +100,18 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         sender: {
           _id: user._id,
           name: user.name,
-          pic: user.pic
+          pic: user.pic,
         },
         chat: selectedChat,
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
       };
-      
+
       // Limpiar el campo de entrada inmediatamente
       setNewMessage("");
-      
+
       // Actualizar la UI inmediatamente con el mensaje optimista
-      setMessages(prevMessages => [...prevMessages, optimisticMessage]);
-      
+      setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
+
       try {
         const config = {
           headers: {
@@ -107,7 +119,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             Authorization: `Bearer ${user.token}`,
           },
         };
-        
+
         // Enviar mensaje al servidor
         const { data } = await axios.post(
           "/api/message",
@@ -117,71 +129,176 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
           config
         );
-        
-        socket.emit('new message', data);
+
+        socket.emit("new message", data);
 
         // Reemplazar el mensaje optimista con el mensaje real del servidor
-        setMessages(prevMessages => 
-          prevMessages.map(msg => msg._id === tempId ? data : msg)
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) => (msg._id === tempId ? data : msg))
         );
-        
+
         // Notificar cambios si es necesario
         if (setFetchAgain) {
           setFetchAgain(!fetchAgain);
         }
-        
       } catch (error) {
         console.error("Error sending message:", error);
         // Marcar el mensaje como fallido (puedes agregar un estilo visual para indicarlo)
-        setMessages(prevMessages => 
-          prevMessages.map(msg => 
-            msg._id === tempId ? {...msg, sendFailed: true} : msg
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg._id === tempId ? { ...msg, sendFailed: true } : msg
           )
         );
       }
     }
   };
 
-  
   const typingHandler = () => {
-    if(!socketConnected) return;
-    if(!typing){
+    if (!socketConnected) return;
+    if (!typing) {
       setTyping(true);
-      socket.emit('typing', selectedChat._id);
+      socket.emit("typing", selectedChat._id);
     }
     let lastTypingTime = new Date().getTime();
     var timerLength = 3000;
-    setTimeout(()=>{
+    setTimeout(() => {
       var timeNow = new Date().getTime();
       var timeDiff = timeNow - lastTypingTime;
-      if(timeDiff >= timerLength && isTyping){
-        socket.emit('stop typing', selectedChat._id);
+      if (timeDiff >= timerLength && isTyping) {
+        socket.emit("stop typing", selectedChat._id);
         setTyping(false);
       }
-    },timerLength);
-  }
+    }, timerLength);
+  };
 
   function handleProfileClick() {
     setOpenProfile(true);
   }
 
+  const sendImage = async (file) => {
+    if (!file) return;
+
+    try {
+      // Validate file type and size
+      const validImageTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+      ];
+      const maxFileSize = 5 * 1024 * 1024; // 5MB
+
+      if (!validImageTypes.includes(file.type)) {
+        alert("Please upload a valid image file (JPEG, PNG, GIF, WebP)");
+        return;
+      }
+
+      if (file.size > maxFileSize) {
+        alert("File is too large. Maximum file size is 5MB.");
+        return;
+      }
+
+      // Show optimistic message while uploading
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMessage = {
+        _id: tempId,
+        content: file, // Store the file object directly
+        contentType: "image",
+        sender: {
+          _id: user._id,
+          name: user.name,
+          pic: user.pic,
+        },
+        chat: selectedChat,
+        createdAt: new Date().toISOString(),
+        isUploading: true,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, optimisticMessage]);
+
+      // Upload the image to Cloudinary
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", "chat-app");
+      formData.append("cloud_name", "mern-chat-app");
+
+      const response = await fetch(
+        "https://api.cloudinary.com/v1_1/mern-chat-app/image/upload",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+      const imageUrl = data.secure_url;
+
+      // Send the image URL as a message
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const { data: messageData } = await axios.post(
+        "/api/message",
+        {
+          content: imageUrl,
+          contentType: "image",
+          chatId: selectedChat._id,
+        },
+        config
+      );
+
+      // Replace the optimistic message with the actual message
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg._id === tempId ? { ...messageData, originalFile: file } : msg
+        )
+      );
+
+      socket.emit("new message", messageData);
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+
+      // Update message to show upload failure
+      setMessages((prevMessages) =>
+        prevMessages.map((msg) =>
+          msg._id.startsWith("temp-") ? { ...msg, uploadFailed: true } : msg
+        )
+      );
+
+      alert("Error uploading image. Please try again.");
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
-    
+
     // Usar la URL actual para conexión al socket
-    const socketUrl = window.location.hostname === 'localhost' 
-      ? 'http://localhost:5000'
-      : window.location.origin;
-      
+    const socketUrl =
+      window.location.hostname === "localhost"
+        ? "http://localhost:5000"
+        : window.location.origin;
+
     socket = io(socketUrl);
-    socket.emit('setup', user);
-    socket.on('connected', () => setSocketConnected(true));
-    socket.on('typing',()=> setIsTyping(true));
-    socket.on('stop typing',()=> setIsTyping(false));
-    
+    socket.emit("setup", user);
+    socket.on("connected", () => setSocketConnected(true));
+    socket.on("typing", () => setIsTyping(true));
+    socket.on("stop typing", () => setIsTyping(false));
+
     // Escuchar mensajes recibidos
-    socket.on('message recieved', (newMessageReceived) => {
-      if (!selectedChatCompare || selectedChatCompare._id !== newMessageReceived.chat._id) {
+    socket.on("message recieved", (newMessageReceived) => {
+      if (
+        !selectedChatCompare ||
+        selectedChatCompare._id !== newMessageReceived.chat._id
+      ) {
         // Manejar notificaciones
         if (!notification.includes(newMessageReceived)) {
           setNotification([newMessageReceived, ...notification]);
@@ -191,14 +308,14 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         setMessages([...messages, newMessageReceived]);
       }
     });
-    
+
     // Limpieza al desmontar
     return () => {
       if (socket) {
-        socket.off('connected');
-        socket.off('typing');
-        socket.off('stop typing');
-        socket.off('message recieved');
+        socket.off("connected");
+        socket.off("typing");
+        socket.off("stop typing");
+        socket.off("message recieved");
       }
     };
   }, [user]);
@@ -212,7 +329,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           Authorization: `Bearer ${user.token}`,
         },
       };
-      
+
       setLoading(true);
       const { data } = await axios.get(
         `/api/message/${selectedChat._id}`,
@@ -220,17 +337,17 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       );
       setMessages(data);
       setLoading(false);
-      socket.emit('join chat', selectedChat._id);
+      socket.emit("join chat", selectedChat._id);
     } catch (error) {
       console.error("Error fetching messages:", error);
       setLoading(false);
     }
   }, [selectedChat, user.token]);
-  
+
   useEffect(() => {
     fetchMessages();
   }, [fetchMessages]);
-  
+
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
@@ -245,18 +362,59 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
     // El scroll automático se ejecutará después de que se actualicen los mensajes
   }, [selectedChat]);
 
-  
-
   // Función para determinar si un mensaje es del usuario actual
   const isSelfMessage = (msg) => {
     return msg.sender._id === user._id;
   };
 
-  // Función para renderizar un mensaje con estilo condicional
+  // Función para renderizar mensajes
   const renderMessage = (msg) => {
     const isSelf = isSelfMessage(msg);
-    const hasError = msg.sendFailed;
+    const hasError = msg.sendFailed || msg.uploadFailed;
     
+    const renderMessageContent = () => {
+      // Check if the message is an image
+      if (msg.contentType === 'image' || msg.content.startsWith('http') && (msg.content.endsWith('.jpg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif') || msg.content.endsWith('.webp'))) {
+        return (
+          <div className="flex flex-col">
+            {msg.isUploading && (
+              <div className="animate-pulse text-gray-400 text-xs mb-1">
+                Uploading...
+              </div>
+            )}
+            <img 
+              src={msg.content} 
+              alt="Uploaded" 
+              className={`max-w-48 max-h-48 object-cover rounded-lg ${
+                hasError ? 'opacity-50 border-2 border-red-500' : ''
+              }`}
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = '/image-error-placeholder.png'; // Add a fallback image
+              }}
+            />
+            {hasError && (
+              <span className="text-xs text-red-500 mt-1">
+                ⚠️ Upload Failed
+              </span>
+            )}
+          </div>
+        );
+      }
+      
+      // Regular text message
+      return (
+        <>
+          {msg.content}
+          {hasError && (
+            <span className="text-xs ml-2 text-red-500">
+              ⚠️ Error
+            </span>
+          )}
+        </>
+      );
+    };
+
     return (
       <div 
         key={msg._id} 
@@ -280,12 +438,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
               : 'bg-white text-gray-800 rounded-bl-none'
           }`}
         >
-          {msg.content}
-          {hasError && (
-            <span className="text-xs ml-2 text-red-500">
-              ⚠️ Error
-            </span>
-          )}
+          {renderMessageContent()}
         </div>
       </div>
     );
@@ -422,47 +575,71 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                     <span className="loader"></span>
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-2 p-2 overflow-y-auto h-full"> 
+                  <div className="flex flex-col gap-2 p-2 overflow-y-auto h-full">
                     {messages.map(renderMessage)}
                     {/* Elemento invisible para scroll automático */}
                     <div ref={messagesEndRef} />
                   </div>
                 )}
               </div>
-                {isTyping?<div className="text-neutral-400 text-sm animate-pulse">Typing...</div>:<></>}
+              {isTyping ? (
+                <div className="text-neutral-400 text-sm animate-pulse">
+                  Typing...
+                </div>
+              ) : (
+                <></>
+              )}
               {/* Input de mensaje usando el componente ChatInput */}
               <div className="flex items-center gap-2 w-full">
-              <div className="relative">
-          <button
-            type="button"
-            className="p-2 rounded hover:bg-gray-200 transition-colors"
-            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          >
-            <Smile size={20} />
-          </button>
-          
-          {showEmojiPicker && (
-            <div className="absolute bottom-12 left-0 z-10" style={{ zIndex: 1000 }}>
-              <EmojiPicker
-                onEmojiClick={handleEmojiClick}
-                theme="light"
-                lazyLoadEmojis={true}
-                searchDisabled={false}
-                previewConfig={{ showPreview: false }}
-              />
-            </div>
-          )}
-        </div>
-        <div className="w-full">
-              <ChatInput 
-                newMessage={newMessage}
-                setNewMessage={setNewMessage}
-                sendMessage={sendMessage}
-                typingHandler={typingHandler}
-              />
+                <div className="relative flex">
+                  <button
+                    type="button"
+                    className="p-4 rounded hover:bg-gray-200 transition-colors"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                  >
+                    <Smile size={20} />
+                  </button>
+
+                  <label className="p-4 rounded hover:bg-gray-200 transition-colors cursor-pointer">
+                    <Image size={20} />
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          sendImage(file);
+                        }
+                      }}
+                    />
+                  </label>
+
+                  {showEmojiPicker && (
+                    <div
+                      className="absolute bottom-12 left-0 z-10"
+                      style={{ zIndex: 1000 }}
+                    >
+                      <EmojiPicker
+                        onEmojiClick={handleEmojiClick}
+                        theme="light"
+                        lazyLoadEmojis={true}
+                        searchDisabled={false}
+                        previewConfig={{ showPreview: false }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="w-full">
+                  <ChatInput
+                    newMessage={newMessage}
+                    setNewMessage={setNewMessage}
+                    sendMessage={sendMessage}
+                    typingHandler={typingHandler}
+                  />
+                </div>
               </div>
-              </div>
-              
             </div>
           </div>
         </div>
