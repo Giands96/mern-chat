@@ -73,7 +73,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
   const fileInputRef = useRef(null);
 
-  const { user, selectedChat, setSelectedChat, notification, setNotification } =
+  const { user, selectedChat, setSelectedChat, setNotification } =
     ChatState();
   const [openProfile, setOpenProfile] = useState(false);
 
@@ -299,13 +299,14 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         !selectedChatCompare ||
         selectedChatCompare._id !== newMessageReceived.chat._id
       ) {
-        // Manejar notificaciones
-        if (!notification.includes(newMessageReceived)) {
-          setNotification([newMessageReceived, ...notification]);
-          if (setFetchAgain) setFetchAgain(!fetchAgain);
-        }
+        // Manejar notificaciones evitando duplicados
+        setNotification(prev => {
+          if (prev.some(n => n._id === newMessageReceived._id)) return prev;
+          return [newMessageReceived, ...prev];
+        });
+        if (setFetchAgain) setFetchAgain(f => !f);
       } else {
-        setMessages([...messages, newMessageReceived]);
+        setMessages(prevMessages => [...prevMessages, newMessageReceived]);
       }
     });
 
@@ -318,7 +319,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         socket.off("message recieved");
       }
     };
-  }, [user]);
+  }, [user, selectedChat, setFetchAgain]);
 
   const fetchMessages = useCallback(async () => {
     if (!selectedChat) return;
