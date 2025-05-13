@@ -6,7 +6,7 @@ export const getSender = (loggedUser, users) => {
 }
 
 export const getSenderUser = (loggedUser, users) => {
-  return users[0]._id === loggedUser._id ? users[1] : users[0].pic;
+  return users[0]._id === loggedUser._id ? users[1] : users[0];
 }
 
 export const isSameSender = (messages, m, i, userId) => {

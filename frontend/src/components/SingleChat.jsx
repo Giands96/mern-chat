@@ -371,10 +371,10 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const renderMessage = (msg) => {
     const isSelf = isSelfMessage(msg);
     const hasError = msg.sendFailed || msg.uploadFailed;
+    const isImage = msg.contentType === 'image' || (msg.content.startsWith('http') && (msg.content.endsWith('.jpg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif') || msg.content.endsWith('.webp')));
     
     const renderMessageContent = () => {
-      // Check if the message is an image
-      if (msg.contentType === 'image' || msg.content.startsWith('http') && (msg.content.endsWith('.jpg') || msg.content.endsWith('.png') || msg.content.endsWith('.gif') || msg.content.endsWith('.webp'))) {
+      if (isImage) {
         return (
           <div className="flex flex-col">
             {msg.isUploading && (
@@ -385,12 +385,12 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             <img 
               src={msg.content} 
               alt="Uploaded" 
-              className={`max-w-96 max-h-96 object-cover rounded-lg ${
+              className={`max-w-96 max-h-96 object-cover rounded-xl ${
                 hasError ? 'opacity-50 border-2 border-red-500' : ''
               }`}
               onError={(e) => {
                 e.target.onerror = null;
-                e.target.src = '/image-error-placeholder.png'; // Add a fallback image
+                e.target.src = '/image-error-placeholder.png';
               }}
             />
             {hasError && (
@@ -402,7 +402,6 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
         );
       }
       
-      // Regular text message
       return (
         <>
           {msg.content}
@@ -430,12 +429,16 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           </div>
         )}
         <div 
-          className={`px-4 py-2 rounded-lg max-w-xs break-words ${
+          className={`rounded-lg max-w-xs break-words ${
             isSelf
               ? hasError 
                 ? 'bg-red-100 text-red-600 border border-red-300 rounded-br-none' 
-                : 'bg-blue-500 text-white rounded-br-none'
-              : 'bg-white text-gray-800 rounded-bl-none'
+                : isImage 
+                  ? 'bg-transparent rounded-br-none shadow-lg' 
+                  : 'bg-blue-500 text-white px-4 py-2 rounded-br-none'
+              : isImage 
+                ? 'bg-transparent rounded-bl-none' 
+                : 'bg-white text-gray-800 px-4 py-2 rounded-bl-none'
           }`}
         >
           {renderMessageContent()}
