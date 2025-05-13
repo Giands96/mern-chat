@@ -114,12 +114,11 @@ export const SideDrawer = () => {
         },
       };
 
-
       const { data } = await axios.post("/api/chat", { userId }, config);
       console.log("User ID", userId);
       console.log("Chat data", data);
 
-      // Si el chat no existe@S en la lista actual, agrégalo
+      // Si el chat no existe en la lista actual, agrégalo
       if (!chats.find((c) => c._id === data._id)) {
         setChats([data, ...chats]);
       }
@@ -127,7 +126,7 @@ export const SideDrawer = () => {
       setSelectedChat(data);
       setLoadingChat(false);
       setIsSearchOpen(false);
-      history.push("/chats");
+      history("/chats");
     } catch (error) {
       console.error("Error completo:", error);
       alert(
