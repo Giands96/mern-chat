@@ -385,7 +385,7 @@ export const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             <img 
               src={msg.content} 
               alt="Uploaded" 
-              className={`max-w-48 max-h-48 object-cover rounded-lg ${
+              className={`max-w-96 max-h-96 object-cover rounded-lg ${
                 hasError ? 'opacity-50 border-2 border-red-500' : ''
               }`}
               onError={(e) => {
